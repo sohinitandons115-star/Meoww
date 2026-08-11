@@ -216,7 +216,13 @@ The vision is to build a modern, scalable web application that demonstrates best
 - Benefits: Cleaner promise handling, better error propagation
 - Locations: All API service functions, repository methods, controller handlers
 
-### 7. Closures
+### 7. Transactions
+- Implementation: Database transaction support using PostgreSQL transaction helper
+- Usage: Atomic operations for data consistency in service layer (createTaskWithTransaction, updateTaskWithTransaction, deleteTaskWithTransaction)
+- Benefits: Data integrity, atomicity, consistency, isolation (ACID properties)
+- Locations: server/src/db/pool.js (transaction helper), server/src/services/taskService.js (transactional methods)
+
+### 8. Closures
 - Implementation: Custom hooks and utility functions
 - Example: createTaskFilter.js demonstrating encapsulation
 - Usage: State encapsulation, memoization, private variables

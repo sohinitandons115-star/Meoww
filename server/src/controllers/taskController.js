@@ -39,7 +39,8 @@ class TaskController {
   // POST /api/tasks - Create new task
   async createTask(req, res, next) {
     try {
-      const task = await taskService.createTask(req.body);
+      // Using transaction-based method to demonstrate atomic operations
+      const task = await taskService.createTaskWithTransaction(req.body);
       res.status(201).json(task);
     } catch (error) {
       next(error);

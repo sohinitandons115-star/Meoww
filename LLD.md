@@ -326,15 +326,16 @@ This LLD implements the following concepts:
 4. **Async API Fetching**: axios/fetch with async/await in service layer
 5. **Client-Side Routing**: React Router v6 in App component
 6. **async/await**: Used throughout API service layer and repository methods
-7. **Closures**: Implemented in custom hooks like createTaskFilter.js
-8. **Event Loop**: Understood in Node.js non-blocking I/O operations
-9. **Hoisting**: Awareness in JavaScript variable/function declarations
-10. **Promises vs Callbacks**: Examples in API service layer demonstrating both patterns
-11. **React Composition**: Component hierarchy Layout > Navbar > PageContainer > TaskList > TaskCard
-12. **useState**: State management pattern [tasks, setTasks], [loading], [error]
-13. **PostgreSQL PK/FK**: Schema design with proper primary/foreign key relationships and JOIN queries
-14. **NoSQL Embedding vs Referencing**: Document relationship modeling in nosqlConcepts.js
-15. **WebSocket Real-time Communication**: Bidirectional client-server messaging via websocket.js
-16. **Scheduled Jobs / Cron**: Background task processing for maintenance via worker.js
-17. **Payment Gateway Integration**: Mock Stripe-like payment service in paymentService.js
-18. **Server-Side Rendering (SSR)**: React rendering on server for improved SEO/performance via ssr.js
+7. **Transactions**: Atomic database operations using transaction helper for data consistency
+8. **Closures**: Implemented in custom hooks like createTaskFilter.js
+9. **Event Loop**: Understood in Node.js non-blocking I/O operations
+10. **Hoisting**: Awareness in JavaScript variable/function declarations
+11. **Promises vs Callbacks**: Examples in API service layer demonstrating both patterns
+12. **React Composition**: Component hierarchy Layout > Navbar > PageContainer > TaskList > TaskCard
+13. **useState**: State management pattern [tasks, setTasks], [loading], [error]
+14. **PostgreSQL PK/FK**: Schema design with proper primary/foreign key relationships and JOIN queries
+15. **NoSQL Embedding vs Referencing**: Document relationship modeling in nosqlConcepts.js
+16. **WebSocket Real-time Communication**: Bidirectional client-server messaging via websocket.js
+17. **Scheduled Jobs / Cron**: Background task processing for maintenance via worker.js
+18. **Payment Gateway Integration**: Mock Stripe-like payment service in paymentService.js
+19. **Server-Side Rendering (SSR)**: React rendering on server for improved SEO/performance via ssr.js
