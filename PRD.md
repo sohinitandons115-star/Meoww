@@ -42,10 +42,13 @@ This document outlines the requirements for a modern web application built with 
 - As a user, I can securely log in to access my personalized dashboard.
 - As a user, I can navigate between different views without page reloads.
 - As a user, I can submit forms and see appropriate success/error messages based on HTTP status codes.
+- As a user, I can see real-time updates through WebSocket connections.
+- As a user, I can make secure payments through integrated payment gateways.
+- As a user, I can benefit from faster initial loads through server-side rendering.
 - As a developer, I can manage environment-specific configurations without hardcoding secrets.
 - As a developer, I can follow a consistent Git workflow for collaborative development.
 - As a developer, I can rely on a well-defined relational database schema for data consistency.
-- As a developer, I can see demonstrations of all 13 core JavaScript/React/Node.js concepts:
+- As a developer, I can see demonstrations of all 18 core JavaScript/React/Node.js concepts:
   1. HTTP Status Codes
   2. Environment Variables
   3. Git Workflow
@@ -59,6 +62,11 @@ This document outlines the requirements for a modern web application built with 
   11. React Composition
   12. useState
   13. PostgreSQL PK/FK
+  14. NoSQL Embedding vs Referencing
+  15. WebSocket Real-time Communication
+  16. Scheduled Jobs / Cron
+  17. Payment Gateway Integration
+  18. Server-Side Rendering (SSR)
 
 ## Acceptance Criteria
 - All API interactions must handle HTTP status codes correctly and display appropriate user feedback.
@@ -69,7 +77,11 @@ This document outlines the requirements for a modern web application built with 
 - Database schema must define clear primary keys and foreign key relationships with referential integrity.
 - Git workflow must include feature branching, pull request reviews, and protected main branch.
 - The application must be deployable to multiple environments (dev, staging, prod) with appropriate configuration.
-- All 13 core concepts must be demonstrably implemented and accessible via the /concepts route.
+- All 18 core concepts must be demonstrably implemented and accessible via the /concepts route and related demo pages.
+- Real-time functionality must be demonstrated through WebSocket connections.
+- Payment processing must be demonstrated through integrated payment gateway.
+- Server-side rendering benefits must be demonstrable through performance metrics.
+- Background job processing must be verifiable through scheduled task execution.
 
 ## Non-Functional Requirements
 - **Performance**: API responses should be cached where appropriate; lazy loading for routes.

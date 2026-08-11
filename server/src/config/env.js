@@ -4,7 +4,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-const requiredEnvVars = ['DATABASE_URL', 'PORT'];
+const requiredEnvVars = ['DATABASE_URL', 'PORT', 'JWT_SECRET', 'JWT_REFRESH_SECRET'];
 
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
@@ -19,7 +19,14 @@ const config = {
   databaseUrl: process.env.DATABASE_URL || '',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   nodeEnv: process.env.NODE_ENV || 'development',
-  
+
+  // Redis Configuration
+  redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
+
+  // JWT Configuration
+  jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
+  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-key-change-in-production',
+
   // Database pool configuration
   database: {
     max: 20,

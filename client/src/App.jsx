@@ -13,6 +13,10 @@ import Concepts from './pages/Concepts.jsx';
 import EventLoopDemo from './pages/EventLoopDemo.jsx';
 import HoistingDemo from './pages/HoistingDemo.jsx';
 import PromisesDemo from './pages/PromisesDemo.jsx';
+import NoSQLDemo from './pages/NoSQLDemo.jsx';
+import SSRDemo from './pages/SSRDemo.jsx';
+import PaymentDemo from './pages/PaymentDemo.jsx';
+import WorkerDemo from './pages/WorkerDemo.jsx';
 
 function App() {
   return (
@@ -29,6 +33,10 @@ function App() {
           <Route path="concepts/event-loop" element={<EventLoopDemo />} />
           <Route path="concepts/hoisting" element={<HoistingDemo />} />
           <Route path="concepts/promises" element={<PromisesDemo />} />
+          <Route path="concepts/nosql" element={<NoSQLDemo />} />
+          <Route path="ssr-demo" element={<SSRDemo />} />
+          <Route path="payment-demo" element={<PaymentDemo />} />
+          <Route path="worker-demo" element={<WorkerDemo />} />
         </Route>
       </Routes>
     </BrowserRouter>

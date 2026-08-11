@@ -23,10 +23,11 @@ The vision is to build a modern, scalable web application that demonstrates best
     - Promises vs Callbacks (implementation examples)
     - Event Loop (Node.js non-blocking I/O)
     - Hoisting (JavaScript variable/function declarations)
+    - NoSQL Embedding vs Referencing (nosqlConcepts.js)
 
-- **Backend API Server**: Node.js/Express RESTful API
-  - Technology: Node.js 18+, Express.js, PostgreSQL client
-  - Responsibilities: Request handling, business logic, data validation, authentication
+- **Backend API Server**: Node.js/Express RESTful API with WebSocket support
+  - Technology: Node.js 18+, Express.js, PostgreSQL client, WebSocket (ws)
+  - Responsibilities: Request handling, business logic, data validation, authentication, real-time communication
   - Concept Coverage:
     - HTTP Status Codes (200, 201, 400, 401, 403, 404, 409, 422, 429, 500, 502, 503, 504)
     - Async API Fetching (axios/fetch with async/await)
@@ -35,6 +36,10 @@ The vision is to build a modern, scalable web application that demonstrates best
     - RESTful API Design (resource-based endpoints)
     - Async Error Handling (try/catch or express-async-handler)
     - Input Validation (Joi/Yup schemas)
+    - WebSocket Real-time Communication (bidirectional client-server messaging)
+    - Payment Gateway Integration (mock Stripe-like service)
+    - Server-Side Rendering (SSR) capabilities (ssr.js)
+    - Scheduled Jobs / Cron (worker.js)
 
 - **Database Layer**: PostgreSQL Relational Database
   - Technology: PostgreSQL 14+
@@ -44,6 +49,7 @@ The vision is to build a modern, scalable web application that demonstrates best
     - Referential Integrity (foreign key constraints)
     - JOIN Queries (demonstrating table relationships)
     - Connection Pooling (performance optimization)
+    - NoSQL Concepts: Embedding vs Referencing (nosqlConcepts.js)
 
 - **Authentication Service**: JWT-based authentication system
   - Technology: jsonwebtoken, bcrypt
@@ -86,6 +92,7 @@ The vision is to build a modern, scalable web application that demonstrates best
     - Promises vs callbacks examples
     - Event loop via Node.js background
     - Hoisting awareness in JS declarations
+    - NoSQL embedding vs referencing concepts (nosqlConcepts.js)
 
 - **Backend**:
   - Node.js 18+ runtime
@@ -101,6 +108,10 @@ The vision is to build a modern, scalable web application that demonstrates best
     - Environment variables via process.env
     - RESTful resource endpoints
     - Input validation schemas
+    - WebSocket real-time communication
+    - Payment gateway integration (mock service)
+    - Server-side rendering capabilities
+    - Scheduled jobs / cron processing
 
 - **Database**:
   - PostgreSQL 14+ relational database
@@ -168,7 +179,7 @@ The vision is to build a modern, scalable web application that demonstrates best
 - Kubernetes orchestration for production scaling
 - Helm charts for deployment management
 
-## Key Technical Concepts Addressed (All 13 Concepts Covered)
+## Key Technical Concepts Addressed (All 18 Concepts Covered)
 
 ### 1. HTTP Status Codes
 - Implementation: Proper usage throughout API endpoints
@@ -248,13 +259,44 @@ The vision is to build a modern, scalable web application that demonstrates best
   - Tasks table: id (PK), user_id (FK to users.id), project_id (FK to projects.id)
   - Projects table: id (PK), user_id (FK to users.id)
 - JOIN Queries: Demonstrating relationships in repository layer
-- Locations: database/schema.php, server/src/repositories/, JOIN queries
+- Locations: database/schema.sql, server/src/repositories/, JOIN queries
+
+### 14. NoSQL Embedding vs Referencing
+- Implementation: Document relationship modeling strategies
+- Usage: Embedding for related data accessed together, referencing for large/shared data
+- Benefits: Embedding - atomic reads, referential integrity, reduced joins; Referencing - no duplication, independent scaling
+- Trade-offs: Embedding - potential data duplication, document size limits; Referencing - query complexity, join requirements
+- Locations: client/src/demos/nosqlConcepts.js, client/src/pages/NoSQLDemo.jsx
+
+### 15. WebSocket Real-time Communication
+- Implementation: Bidirectional full-duplex communication over single TCP connection
+- Usage: Real-time updates for tasks, projects, notifications without polling
+- Benefits: Low latency, reduced bandwidth, persistent connection, binary data support
+- Locations: server/src/websocket.js, WebSocket server on port 6001
+
+### 16. Scheduled Jobs / Cron
+- Implementation: Background task processing for automated maintenance
+- Usage: Cleanup expired data (hourly), notification reminders (30min), daily reports (2AM), backup verification (3AM)
+- Benefits: Improved responsiveness, resource efficiency, reliability, scalability
+- Locations: server/src/worker.js
+
+### 17. Payment Gateway Integration
+- Implementation: Mock Stripe-like payment service demonstrating integration patterns
+- Usage: Payment intent creation, confirmation, refunds, connection testing
+- Benefits: Secure payment processing, multiple payment methods, fraud detection, recurring billing
+- Locations: server/src/services/paymentService.js, server/src/routes/paymentRoutes.js
+
+### 18. Server-Side Rendering (SSR)
+- Implementation: Rendering React components on server for improved SEO and performance
+- Usage: Faster initial paint, better SEO, social media sharing, accessibility
+- Benefits: Improved SEO, faster initial load, better performance on slow devices, proper meta tags
+- Locations: server/src/ssr.js, /ssr-demo route
 
 ## Concept Verification
-All 13 concepts are:
+All 18 concepts are:
 1. **Implemented**: Actually coded in the application
 2. **Documented**: Explained in the HLD/LLD/PRD documents
 3. **Demonstrable**: Accessible via specific routes or code examples
 4. **Verifiable**: Can be tested and confirmed working
 
-This HLD provides a comprehensive overview of how all 13 requested concepts are implemented in the Hexa application, ensuring complete coverage as specified in the requirements.
+This HLD provides a comprehensive overview of how all 18 requested concepts are implemented in the Hexa application, ensuring complete coverage as specified in the requirements.

@@ -3,13 +3,30 @@
 
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import config from './config/env.js';
+import authRoutes from './routes/authRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 import notFound from './middleware/notFound.js';
+import { ssrMiddleware } from './ssr.js';
 
 const app = express();
+
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      scriptSrc: ["'self'"],
+      connectSrc: ["'self'", "ws:", "wss:"] // Allow WebSocket connections
+    }
+  }
+}));
 
 // Middleware
 app.use(cors({
@@ -19,6 +36,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// SSR middleware (for demonstration - in practice, you'd configure which routes to SSR)
+app.use(ssrMiddleware());
+
 // Request logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
@@ -26,12 +46,44 @@ app.use((req, res, next) => {
 });
 
 // API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Example SSR endpoint (for demonstration)
+app.get('/ssr-demo', async (req, res) => {
+  try {
+    // In a real implementation, you would render a React component here
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Hexa SSR Demo</title>
+          <meta name="description" content="Server-side rendering demonstration">
+        </head>
+        <body>
+          <div id="root">
+            <h1>Server-Side Rendering Demo</h1>
+            <p>This page demonstrates server-side rendering capabilities.</p>
+            <p>Current time: ${new Date().toLocaleString()}</p>
+          </div>
+          <script>
+            // In a real SSR implementation, you would hydrate the client-side app here
+            console.log('SSR demo page loaded');
+          </script>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('SSR demo error:', error.message);
+    res.status(500).send('SSR rendering failed');
+  }
 });
 
 // 404 handler

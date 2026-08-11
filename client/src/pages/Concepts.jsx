@@ -1,5 +1,6 @@
 // Concepts Page - Concept Demonstration Center
-// Displays all 13 mandatory concepts with links to demos
+// Displays all mandatory concepts with links to demos
+// Includes both required 13 concepts and additional bonus concepts
 
 import { Link } from 'react-router-dom';
 import PageContainer from '../components/PageContainer.jsx';
@@ -112,33 +113,105 @@ const concepts = [
   }
 ];
 
+// Additional bonus/demo concepts (beyond the required 13)
+const bonusConcepts = [
+  {
+    id: 14,
+    name: 'NoSQL Embedding vs Referencing',
+    description: 'Relationship modeling in document databases',
+    implementation: 'client/src/demos/nosqlConcepts.js',
+    demo: <Link to="/concepts/nosql">NoSQL Concepts Demo</Link>,
+    file: 'client/src/demos/nosqlConcepts.js'
+  },
+  {
+    id: 15,
+    name: 'WebSocket Real-time Communication',
+    description: 'Bidirectional real-time communication between client and server',
+    implementation: 'server/src/websocket.js',
+    demo: 'WebSocket server running on port 6001',
+    file: 'server/src/websocket.js'
+  },
+  {
+    id: 16,
+    name: 'Scheduled Jobs / Cron',
+    description: 'Background task processing for maintenance and reports',
+    implementation: 'server/src/worker.js',
+    demo: <Link to="/worker-demo">Worker Demo</Link>,
+    file: 'server/src/worker.js'
+  },
+  {
+    id: 17,
+    name: 'Payment Gateway Integration',
+    description: 'Integration with payment providers like Stripe/PayPal',
+    implementation: 'server/src/services/paymentService.js',
+    demo: <Link to="/payment-demo">Payment Demo</Link>,
+    file: 'server/src/services/paymentService.js'
+  },
+  {
+    id: 18,
+    name: 'Server-Side Rendering (SSR)',
+    description: 'Rendering React components on the server for improved SEO and performance',
+    implementation: 'server/src/ssr.js',
+    demo: <Link to="/ssr-demo">SSR Demo</Link>,
+    file: 'server/src/ssr.js'
+  }
+];
+
 function Concepts() {
   return (
-    <PageContainer 
-      title="Concept Center" 
-      subtitle="Explore all 13 mandatory engineering concepts"
+    <PageContainer
+      title="Concept Center"
+      subtitle="Explore all engineering concepts implemented in Hexa"
     >
       <div className="concepts-page">
         <p className="intro">
-          This page demonstrates all 13 mandatory concepts for the viva examination.
-          Each concept is implemented in real application code and is runtime-verifiable.
+          This page demonstrates all engineering concepts implemented in the Hexa application.
+          The first 13 are mandatory concepts for the viva examination, while additional
+          concepts showcase advanced features and best practices.
         </p>
-        
-        <div className="concepts-grid">
-          {concepts.map(concept => (
-            <div key={concept.id} className="concept-card">
-              <div className="concept-header">
-                <span className="concept-number">{concept.id}</span>
-                <h3>{concept.name}</h3>
+
+        <div className="concepts-section">
+          <h2>Mandatory Concepts (1-13)</h2>
+          <div className="concepts-grid">
+            {concepts.map(concept => (
+              <div key={concept.id} className="concept-card">
+                <div className="concept-header">
+                  <span className="concept-number">{concept.id}</span>
+                  <h3>{concept.name}</h3>
+                </div>
+                <p className="concept-description">{concept.description}</p>
+                <div className="concept-details">
+                  <p><strong>Implementation:</strong> {concept.implementation}</p>
+                  <p><strong>Demo:</strong> {concept.demo}</p>
+                  <p><strong>File:</strong> {concept.file}</p>
+                </div>
               </div>
-              <p className="concept-description">{concept.description}</p>
-              <div className="concept-details">
-                <p><strong>Implementation:</strong> {concept.implementation}</p>
-                <p><strong>Demo:</strong> {concept.demo}</p>
-                <p><strong>File:</strong> {concept.file}</p>
+            ))}
+          </div>
+        </div>
+
+        <div className="concepts-section">
+          <h2>Bonus/Advanced Concepts</h2>
+          <p className="intro">
+            These additional concepts demonstrate advanced features and architectural patterns
+            that enhance the application beyond the basic requirements.
+          </p>
+          <div className="concepts-grid">
+            {bonusConcepts.map(concept => (
+              <div key={concept.id} className="concept-card">
+                <div className="concept-header">
+                  <span className="concept-number">{concept.id}</span>
+                  <h3>{concept.name}</h3>
+                </div>
+                <p className="concept-description">{concept.description}</p>
+                <div className="concept-details">
+                  <p><strong>Implementation:</strong> {concept.implementation}</p>
+                  <p><strong>Demo:</strong> {concept.demo}</p>
+                  <p><strong>File:</strong> {concept.file}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </PageContainer>

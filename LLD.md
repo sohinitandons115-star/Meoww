@@ -333,3 +333,8 @@ This LLD implements the following concepts:
 11. **React Composition**: Component hierarchy Layout > Navbar > PageContainer > TaskList > TaskCard
 12. **useState**: State management pattern [tasks, setTasks], [loading], [error]
 13. **PostgreSQL PK/FK**: Schema design with proper primary/foreign key relationships and JOIN queries
+14. **NoSQL Embedding vs Referencing**: Document relationship modeling in nosqlConcepts.js
+15. **WebSocket Real-time Communication**: Bidirectional client-server messaging via websocket.js
+16. **Scheduled Jobs / Cron**: Background task processing for maintenance via worker.js
+17. **Payment Gateway Integration**: Mock Stripe-like payment service in paymentService.js
+18. **Server-Side Rendering (SSR)**: React rendering on server for improved SEO/performance via ssr.js
