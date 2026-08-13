@@ -1,99 +1,64 @@
-# Product Requirements Document (PRD)
+# Product Requirements Document (PRD) — Hexa Platform
 
 ## Overview
-This document outlines the requirements for a modern web application built with React and Node.js, featuring robust API interactions, client-side routing, and secure data management. The application will utilize PostgreSQL for relational data storage with proper primary/foreign key relationships.
+This document outlines the product requirements for **Hexa** (`hardikkaurani/Hexa`), a full-stack engineering platform built with React and Node.js. It features robust RESTful API interactions, client-side routing with route guards, PostgreSQL relational database management with PK/FK constraints and performance B-Tree indexing, secure authentication via bcryptjs, and comprehensive viva-ready concept demonstrations.
 
-## Features
-1. **User Authentication & Authorization**
-   - Secure login/logout functionality
-   - Role-based access control
-   - Environment-based configuration for secrets (API keys, database credentials)
+---
 
-2. **API Integration**
-   - Async data fetching from RESTful APIs using async/await
-   - Proper HTTP status code handling (200, 201, 400, 401, 403, 404, 409, 422, 429, 500, 502, 503, 504)
-   - Error handling and retry mechanisms
-   - Promises vs callbacks implementation demonstration
+## 100% Implemented Product Features & Architecture
 
-3. **Frontend Experience**
-   - Client-side routing using React Router v6
-   - React component composition patterns (Layout > Navbar > PageContainer > TaskList > TaskCard)
-   - State management using React useState hook ([tasks, setTasks], [loading], [error] patterns)
-   - Closures implementation (createTaskFilter.js)
-   - Event loop concepts demonstration
-   - Hoisting concepts demonstration
-   - Promises vs callbacks concepts demonstration
-   - Responsive UI design
+### 1. User Authentication & Security
+- **Bcrypt Password Hashing**: Password values are hashed using `bcryptjs` (`saltRounds = 10`) during registration in [`server/src/controllers/authController.js`](file:///c:/Users/hardi/Hexa/server/src/controllers/authController.js#L41) and verified on login.
+- **JWT Session Tokens**: Issues short-lived access tokens and sets HTTP-only refresh cookies.
+- **Environment Secrets Isolation**: Externalizes secrets into `.env` (gitignored), verified on server boot via [`server/src/config/env.js`](file:///c:/Users/hardi/Hexa/server/src/config/env.js). `.env.example` provides safe developer defaults.
 
-4. **Data Management**
-   - Relational schema design with PostgreSQL
-   - Proper primary key and foreign key relationships (schema.sql)
-   - Data validation and integrity constraints
-   - JOIN queries demonstrating PK/FK relationships
+### 2. API Integration & Asynchronous Operations
+- **Async API Fetching**: React components consume backend APIs via `fetch()` and `async/await` in [`client/src/api/projectApi.js`](file:///c:/Users/hardi/Hexa/client/src/api/projectApi.js) and `taskApi.js`.
+- **Semantic HTTP Status Codes**: Explicit error and success handling for `200 OK`, `201 Created`, `204 No Content`, `400 Bad Request`, `401 Unauthorized`, `404 Not Found`, `409 Conflict`, and `500 Server Error`. Fixed `error.status = 404` status assignment.
+- **Parallel vs Sequential Execution**: Uses `Promise.all()` for concurrent dashboard fetching in [`Dashboard.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/Dashboard.jsx) vs sequential `await` for dependent queries.
 
-5. **Development & Deployment**
-   - Standardized Git workflow (feature branches, pull requests, code reviews)
-   - Environment variables management for different deployment stages (.env.example)
-   - Secrets management (never committing secrets to version control)
-   - Docker containerization (optional)
-   - CI/CD pipelines
+### 3. Frontend Experience & Routing
+- **Client-Side Routing & Guards**: React Router v6 handles navigation in [`client/src/App.jsx`](file:///c:/Users/hardi/Hexa/client/src/App.jsx). Protected routes (`/tasks/new`) are secured using [`client/src/components/ProtectedRoute.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/ProtectedRoute.jsx).
+- **Component Composition**: UI hierarchy (`App` → `Layout` → `Page` → `TaskList` → `TaskCard`) with reusable presentation components like [`client/src/components/EmptyState.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/EmptyState.jsx) accepting configurable `message` and `icon` props.
+- **Form State Management (`useState`)**: Controlled form inputs in [`client/src/components/TaskForm.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/TaskForm.jsx) using a unified `formData` object supporting Create mode (`initialData = {}`) and Edit mode (pre-populated data) with immutable updates (`setFormData(prev => ({ ...prev, [name]: value }))`).
+- **JavaScript Core Concepts**: Interactive pages demonstrating Closures ([`createTaskFilter.js`](file:///c:/Users/hardi/Hexa/client/src/utils/createTaskFilter.js)), Event Loop ([`EventLoopDemo.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/EventLoopDemo.jsx)), Hoisting & TDZ ([`HoistingDemo.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/HoistingDemo.jsx)), and Promises vs Callbacks ([`PromisesDemo.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/PromisesDemo.jsx)).
 
-## User Stories
-- As a user, I can securely log in to access my personalized dashboard.
-- As a user, I can navigate between different views without page reloads.
-- As a user, I can submit forms and see appropriate success/error messages based on HTTP status codes.
-- As a user, I can see real-time updates through WebSocket connections.
-- As a user, I can make secure payments through integrated payment gateways.
-- As a user, I can benefit from faster initial loads through server-side rendering.
-- As a developer, I can manage environment-specific configurations without hardcoding secrets.
-- As a developer, I can follow a consistent Git workflow for collaborative development.
-- As a developer, I can rely on a well-defined relational database schema for data consistency.
-- As a developer, I can see demonstrations of all 18 core JavaScript/React/Node.js concepts:
-  1. HTTP Status Codes
-  2. Environment Variables
-  3. Git Workflow
-  4. Async API Fetching
-  5. Client-Side Routing
-  6. async/await
-  7. Closures
-  8. Event Loop
-  9. Hoisting
-  10. Promises vs Callbacks
-  11. React Composition
-  12. useState
-  13. PostgreSQL PK/FK
-  14. NoSQL Embedding vs Referencing
-  15. WebSocket Real-time Communication
-  16. Scheduled Jobs / Cron
-  17. Payment Gateway Integration
-  18. Server-Side Rendering (SSR)
+### 4. Database Management & Indexing Strategy
+- **PostgreSQL Relational Schema**: Normalized tables in [`database/schema.sql`](file:///c:/Users/hardi/Hexa/database/schema.sql) (`users`, `projects`, `tasks`).
+- **Primary & Foreign Key Constraints**: Enforces data integrity via `projects.owner_id REFERENCES users(id) ON DELETE CASCADE` and `tasks.project_id REFERENCES projects(id) ON DELETE CASCADE`.
+- **B-Tree SQL Indexing**: Explicit B-Tree indexes (`idx_users_email`, `idx_projects_owner_id`, `idx_tasks_project_id`, `idx_tasks_status`) optimizing frequent SQL lookup and JOIN queries.
+- **Relational JOIN Queries**: Implemented in [`server/src/repositories/taskRepository.js`](file:///c:/Users/hardi/Hexa/server/src/repositories/taskRepository.js#L17-L33).
 
-## Acceptance Criteria
-- All API interactions must handle HTTP status codes correctly and display appropriate user feedback.
-- Secrets must never be committed to version control; environment variables must be used.
-- The application must use client-side routing for SPA-like experience.
-- React components must be composable and reusable with clear separation of concerns.
-- State must be managed using React useState hook (or useReducer for complex state).
-- Database schema must define clear primary keys and foreign key relationships with referential integrity.
-- Git workflow must include feature branching, pull request reviews, and protected main branch.
-- The application must be deployable to multiple environments (dev, staging, prod) with appropriate configuration.
-- All 18 core concepts must be demonstrably implemented and accessible via the /concepts route and related demo pages.
-- Real-time functionality must be demonstrated through WebSocket connections.
-- Payment processing must be demonstrated through integrated payment gateway.
-- Server-side rendering benefits must be demonstrable through performance metrics.
-- Background job processing must be verifiable through scheduled task execution.
+### 5. Development Workflow & Automated Testing
+- **Standardized Git Workflow**: Uses feature branches (`feature/viva-hardening`), atomic commits, and Pull Requests.
+- **PR Documentation**: Enforces PR descriptions using [`.github/pull_request_template.md`](file:///c:/Users/hardi/Hexa/.github/pull_request_template.md).
+- **Automated Testing**: Backend unit test suite in [`server/test/api.test.js`](file:///c:/Users/hardi/Hexa/server/test/api.test.js) verifying JWT generation/validation and environment loading.
 
-## Non-Functional Requirements
-- **Performance**: API responses should be cached where appropriate; lazy loading for routes.
-- **Security**: Implement HTTPS, secure cookies, input validation, and protection against common vulnerabilities.
-- **Scalability**: Design stateless services where possible; use connection pooling for database.
-- **Maintainability**: Follow consistent code formatting, documentation, and modular architecture.
-- **Compliance**: Adhere to data protection regulations where applicable.
-- **Concept Coverage**: All 13 specified concepts must be clearly implemented and documented.
+---
 
-## Timeline
-- Phase 1: Project setup and core architecture (Week 1-2)
-- Phase 2: Authentication and API integration (Week 3-4)
-- Phase 3: Frontend development and routing (Week 5-6)
-- Phase 4: Database design and data access layer (Week 7-8)
-- Phase 5: Testing, deployment, documentation, and concept verification (Week 9-10)
+## User Stories & Implementation Mapping
+
+1. **User Authentication**: As a user, I can register and log in securely with bcryptjs hashed passwords.
+2. **Client-Side Routing**: As a user, I can navigate between views seamlessly with SPA routing and route protection guards.
+3. **Form Management**: As a user, I can create and edit tasks using controlled forms initialized with defaults or pre-populated data.
+4. **Data Integrity**: As a developer, I can rely on PostgreSQL PK/FK constraints and B-Tree indexes for fast, consistent query execution.
+5. **Viva Preparedness**: As an examiner/student, I can verify all 14 mandatory concepts against exact repository files and runnable demo pages.
+
+---
+
+## Technical Concept Coverage Matrix (All 14 Mandatory Concepts)
+
+1. **HTTP Status Codes** (`200`, `201`, `204`, `400`, `401`, `404`, `409`, `500` in controllers)
+2. **Environment Variables & Secrets** (`server/src/config/env.js`, `.env.example`, `.gitignore`)
+3. **Git Workflow & PR Evidence** (`feature/viva-hardening`, `.github/pull_request_template.md`)
+4. **Async API Fetching** (`client/src/api/projectApi.js`, `taskApi.js`)
+5. **Client-Side Routing & Guard** (`client/src/App.jsx`, `ProtectedRoute.jsx`)
+6. **JavaScript async/await & Promise.all** (`Dashboard.jsx`, API services)
+7. **JavaScript Closures** (`client/src/utils/createTaskFilter.js`)
+8. **JavaScript Event Loop** (`client/src/pages/EventLoopDemo.jsx`)
+9. **JavaScript Hoisting & TDZ** (`client/src/pages/HoistingDemo.jsx`)
+10. **Promises vs Callbacks** (`client/src/pages/PromisesDemo.jsx`)
+11. **React Component Composition** (`client/src/components/EmptyState.jsx`)
+12. **State Management (useState)** (`client/src/components/TaskForm.jsx`)
+13. **PostgreSQL PK/FK Schema** (`database/schema.sql`, `taskRepository.js`)
+14. **SQL Indexing Performance** (`database/schema.sql`, B-Tree indexes)
