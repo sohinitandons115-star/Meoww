@@ -1,125 +1,87 @@
-# Concept 5: Client-Side Routing
+# Concept 5: Client-Side Routing & Route Guards
 
 ## Definition
-Client-side routing enables Single Page Application (SPA) behavior where navigation between pages happens without full page reloads. The browser URL changes and content updates dynamically using JavaScript.
+Client-side routing allows a Single Page Application (SPA) to update the URL and render different component views without requesting a full page reload from the server. React Router v6 manages browser history, dynamic parameters, and route protection inside Hexa.
 
-## Implementation
+---
 
-### Files
-- `client/src/App.jsx` - Route definitions
-- `client/src/components/Navbar.jsx` - Navigation links
-- `client/vite.config.js` - Dev server proxy
+## Hexa Route Definitions
 
-### React Router Setup
+**File**: [`client/src/App.jsx`](file:///c:/Users/hardi/Hexa/client/src/App.jsx)
 
-```javascript
-// client/src/App.jsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout.jsx';
-import Dashboard from './pages/Dashboard.jsx';
-import Tasks from './pages/Tasks.jsx';
-import TaskDetails from './pages/TaskDetails.jsx';
-import CreateTask from './pages/CreateTask.jsx';
-import Projects from './pages/Projects.jsx';
-import ProjectDetails from './pages/ProjectDetails.jsx';
-import Concepts from './pages/Concepts.jsx';
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="tasks" element={<Tasks />} />
-          <Route path="tasks/new" element={<CreateTask />} />
-          <Route path="tasks/:id" element={<TaskDetails />} />
-          <Route path="projects" element={<Projects />} />
-          <Route path="projects/:id" element={<ProjectDetails />} />
-          <Route path="concepts" element={<Concepts />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  );
-}
-
-export default App;
+```jsx
+<BrowserRouter>
+  <Routes>
+    <Route path="/" element={<Layout />}>
+      <Route index element={<Dashboard />} />
+      <Route path="tasks" element={<Tasks />} />
+      <Route path="tasks/:id" element={<TaskDetails />} />
+      <Route path="projects" element={<Projects />} />
+      <Route path="projects/:id" element={<ProjectDetails />} />
+      <Route path="concepts" element={<Concepts />} />
+      
+      {/* Protected Route Guard */}
+      <Route element={<ProtectedRoute isAuthenticated={true} />}>
+        <Route path="tasks/new" element={<CreateTask />} />
+      </Route>
+    </Route>
+  </Routes>
+</BrowserRouter>
 ```
 
-### Navigation Components
+---
+
+## Dynamic Routing Parameters (`/tasks/:id`)
+
+**File**: [`client/src/pages/TaskDetails.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/TaskDetails.jsx)
 
 ```javascript
-// client/src/components/Navbar.jsx
-import { NavLink } from 'react-router-dom';
-
-function Navbar() {
-  return (
-    <nav>
-      <NavLink to="/">Dashboard</NavLink>
-      <NavLink to="/tasks">Tasks</NavLink>
-      <NavLink to="/projects">Projects</NavLink>
-      <NavLink to="/concepts">Concepts</NavLink>
-    </nav>
-  );
-}
-```
-
-### Using Dynamic Parameters
-
-```javascript
-// client/src/pages/TaskDetails.jsx
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react';
 
 function TaskDetails() {
-  const { id } = useParams(); // Gets :id from URL
-  
-  // Fetch task using id...
-  return <div>Task ID: {id}</div>;
+  const { id } = useParams(); // Extracts 'id' dynamic parameter from URL
+  // Fetches task data via taskApi.getTask(id)
 }
 ```
 
-### Using Navigation
+---
 
-```javascript
-import { useNavigate } from 'react-router-dom';
+## Client-Side Route Protection (`ProtectedRoute.jsx`)
 
-function CreateTask() {
-  const navigate = useNavigate();
-  
-  const handleSubmit = async (data) => {
-    await createTask(data);
-    navigate('/tasks'); // Redirect after success
-  };
-  
-  return <TaskForm onSubmit={handleSubmit} />;
+**File**: [`client/src/components/ProtectedRoute.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/ProtectedRoute.jsx)
+
+```jsx
+import { Navigate, Outlet } from 'react-router-dom';
+
+function ProtectedRoute({ isAuthenticated, redirectTo = '/' }) {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const isAllowed = isAuthenticated || Boolean(token);
+
+  if (!isAllowed) {
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  return <Outlet />;
 }
 ```
 
-## Routes Defined
+---
 
-| Path | Component | Description |
-|------|-----------|-------------|
-| / | Dashboard | Main overview |
-| /tasks | Tasks | Task list with filtering |
-| /tasks/new | CreateTask | Create new task form |
-| /tasks/:id | TaskDetails | View/edit task |
-| /projects | Projects | Project list |
-| /projects/:id | ProjectDetails | View project with tasks |
-| /concepts | Concepts | Concept demonstration center |
+## Security Boundary & UX Limitation
 
-## How to Demonstrate
+> [!IMPORTANT]
+> **Client-Side Routing is NOT a Security Boundary!**  
+> Client-side route guards improve User Experience (UX) by preventing unauthenticated users from seeing UI forms or navigating to protected paths. However, JavaScript executing in the browser can be bypassed. **Real security and data authorization must be enforced on the backend Express API server.**
 
-1. Click navigation links - Notice no page reload
-2. Check URL changes - Updates to /tasks, /projects, etc.
-3. Use browser back/forward - Works correctly
-4. Open DevTools - No network requests for page navigation
+---
 
-## Viva Questions
+## Viva Reviewer Questions & Answers
 
-**Q: What is client-side routing?**
-A: Navigation that happens entirely in the browser using JavaScript, without requesting new HTML pages from the server.
+**Q: Show me a dynamic route in Hexa.**  
+**A**: `/tasks/:id` defined in `client/src/App.jsx`. `TaskDetails.jsx` uses `useParams()` hook to extract the task ID from the URL path.
 
-**Q: How does React Router work?**
-A: It uses the History API to change the URL and renders different components based on the route definition, all without page reload.
+**Q: How does ProtectedRoute work?**  
+**A**: `ProtectedRoute.jsx` checks the authentication state / `localStorage` token. If valid, it renders `<Outlet />` to display protected child routes (`/tasks/new`). If absent, it redirects the user using `<Navigate to="/" replace />`.
 
-**Q: What is the difference between Link and NavLink?**
-A: NavLink automatically gets an "active" class when its path matches the current URL, useful for styling navigation items.
+**Q: Is client-side route protection sufficient for application security?**  
+**A**: No. Client-side protection improves UX and navigation. Backend endpoints must independently verify authentication tokens and authorization rules on every HTTP request.

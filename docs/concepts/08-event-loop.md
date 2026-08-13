@@ -1,131 +1,72 @@
-# Concept 8: JavaScript Event Loop
+# Concept 8: JavaScript Event Loop & Non-Blocking Asynchronous Concurrency
 
 ## Definition
-The event loop is JavaScript's mechanism for handling asynchronous operations. It continuously checks the call stack and task queues, executing callbacks in a specific order: all microtasks first, then one macrotask.
+JavaScript is a single-threaded runtime engine. The **Event Loop** is the mechanism that orchestrates asynchronous non-blocking execution by managing the **Call Stack**, **Microtask Queue** (Promises, `process.nextTick`), and **Macrotask/Task Queue** (`setTimeout`, `setInterval`, I/O callbacks).
 
-## Implementation
+---
 
-### Files
-- `client/src/demos/eventLoopDemo.js` - Demonstration code
-- `client/src/pages/EventLoopDemo.jsx` - Interactive demo page
-- `client/src/pages/HoistingDemo.jsx` - Shows related concepts
+## Primary Repository Evidence
 
-### Event Loop Demonstration
+**Demo Component**: [`client/src/pages/EventLoopDemo.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/EventLoopDemo.jsx)
 
 ```javascript
-// client/src/demos/eventLoopDemo.js
-
-export function demonstrateEventLoop() {
-  const executionOrder = [];
-  
-  // 1. Sync code - goes directly to call stack
-  executionOrder.push('A');
-  
-  // 2. setTimeout - macrotask, goes to task queue
-  setTimeout(() => {
-    executionOrder.push('B');
-  }, 0);
-  
-  // 3. Promise.then - microtask, goes to microtask queue
-  Promise.resolve().then(() => {
-    executionOrder.push('C');
-  });
-  
-  // 4. More sync code
-  executionOrder.push('D');
-  
-  return {
-    // After event loop processes: A, D execute first
-    // Then microtasks: C
-    // Then macrotasks: B
-    expectedOrder: 'A -> D -> C -> B'
-  };
-}
-```
-
-## Event Loop Phases
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     JAVASCRIPT RUNTIME                       │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────┐     ┌─────────────────┐                  │
-│  │  CALL STACK  │────>│  EVENT LOOP     │                  │
-│  │              │     │                 │                  │
-│  │  1. A        │     │ Monitors call   │                  │
-│  │  2. D        │     │ stack & queues  │                  │
-│  └──────────────┘     └────────┬────────┘                  │
-│                                │                           │
-│                    ┌───────────┴───────────┐               │
-│                    │                       │               │
-│          ┌─────────▼─────────┐   ┌────────▼────────┐       │
-│          │  MICROTASK QUEUE  │   │  TASK QUEUE     │       │
-│          │  (high priority)  │   │ (macrotask)     │       │
-│          │                   │   │                 │       │
-│          │  • Promise.then   │   │  • setTimeout   │       │
-│          │  • queueMicrotask │   │  • setInterval  │       │
-│          │  • MutationObserver│  │  • I/O events   │       │
-│          └───────────────────┘   └─────────────────┘       │
-│                    │                       │               │
-│                    └───────────┬───────────┘               │
-│                                │                           │
-│                    Event loop runs:                         │
-│                    1. Execute ALL microtasks               │
-│                    2. Execute ONE macrotask                │
-│                    3. Repeat                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Execution Order Example
-
-```javascript
-console.log('1');           // Call stack
+console.log('A: Synchronous Start');
 
 setTimeout(() => {
-  console.log('2');       // Task queue (macrotask)
+  console.log('B: Macrotask (setTimeout 0ms)');
 }, 0);
 
 Promise.resolve().then(() => {
-  console.log('3');       // Microtask queue
+  console.log('C: Microtask (Promise resolve)');
 });
 
-console.log('4');           // Call stack
-
-// Output: 1, 4, 3, 2
+console.log('D: Synchronous End');
 ```
 
-## Interactive Demo
+---
 
-Navigate to `/concepts/event-loop` to see:
-- Code execution in real-time
-- Explanation of each phase
-- Interactive examples
+## Execution Order Output & Sequence Explanation
 
-## How to Demonstrate
+### Output
+```text
+A: Synchronous Start
+D: Synchronous End
+C: Microtask (Promise resolve)
+B: Macrotask (setTimeout 0ms)
+```
 
-1. Visit `/concepts/event-loop` page
-2. Click "Run Basic Demo" button
-3. See execution order: A → D → C → B
-4. Explanation shows call stack → microtasks → macrotasks
+### Execution Flow Step-by-Step
 
-## Key Points
+1. **Synchronous Execution Phase**:
+   - `console.log('A')` is pushed to Call Stack, executes immediately, logs `A`, pops off.
+   - `setTimeout(..., 0)` registers a timer with Web APIs. When timer expires, its callback is enqueued into the **Macrotask Queue**.
+   - `Promise.resolve().then(...)` enqueues its `.then()` callback directly into the **Microtask Queue**.
+   - `console.log('D')` executes synchronously, logs `D`, pops off Call Stack.
 
-1. **Call Stack**: Executes synchronous code immediately
-2. **Microtask Queue**: Promise callbacks, queueMicrotask() - HIGH PRIORITY
-3. **Task Queue**: setTimeout, setInterval - LOWER PRIORITY
-4. **Event Loop**: Runs all microtasks, then ONE task, then repeats
+2. **Microtask Phase (High Priority)**:
+   - Call Stack is now empty. The Event Loop inspects the **Microtask Queue** first.
+   - Promise callback is popped from Microtask Queue onto Call Stack, logs `C`, pops off.
+   - Microtask Queue is completely drained before checking Macrotasks.
 
-## Viva Questions
+3. **Macrotask Phase**:
+   - Event Loop inspects the **Macrotask Queue**.
+   - `setTimeout` callback is popped from Macrotask Queue onto Call Stack, logs `B`, pops off.
 
-**Q: Explain the call stack.**
-A: A stack data structure that tracks function execution. Functions are pushed when called, popped when complete. Synchronous code executes immediately.
+> [!NOTE]
+> `setTimeout(fn, 0)` does **NOT** run immediately after 0 milliseconds. It schedules a callback into the Macrotask Queue, which must wait until all synchronous code finishes and the Microtask Queue is completely empty!
 
-**Q: Explain the microtask queue.**
-A: A queue for Promise callbacks that has higher priority than the task queue. All microtasks are executed before the next macrotask.
+---
 
-**Q: Why does Promise.then execute before setTimeout(..., 0)?**
-A: Promise.then is a microtask, setTimeout is a macrotask. The event loop processes all microtasks before processing any macrotasks.
+## Connection to Hexa API Fetching
 
-**Q: What is the output of the demo and why?**
-A: A, D, C, B. A and D are sync (call stack), C is microtask (runs after sync), B is macrotask (runs after all microtasks).
+When Hexa components call `fetch('/api/tasks')`, the browser offloads HTTP networking to browser background threads. When the HTTP response arrives, its Promise resolution callback is placed in the **Microtask Queue**, guaranteeing fast execution without blocking UI renders.
+
+---
+
+## Viva Reviewer Questions & Answers
+
+**Q: Why is C printed before B in the Event Loop demo?**  
+**A**: Because Promise resolutions (`C`) enter the **Microtask Queue**, which has absolute priority over the **Macrotask Queue** (`setTimeout` `B`). The Event Loop drains all microtasks before picking the next macrotask.
+
+**Q: Does setTimeout(fn, 0) execute after 0ms?**  
+**A**: No. It specifies the *minimum delay* before the task callback is enqueued in the Macrotask Queue. It will only execute after all synchronous code finishes and all pending microtasks complete.

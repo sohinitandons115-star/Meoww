@@ -1,164 +1,97 @@
 # Concept 12: React State Management with useState
 
 ## Definition
-useState is a React Hook that allows functional components to have local state. It returns a stateful value and a function to update it, triggering re-renders when the state changes.
+`useState` is a React Hook that enables functional components to maintain local component state. It returns an array containing the current state value and a state updater function that triggers a asynchronous component re-render when called.
 
-## Implementation
+## Primary Repository Evidence
 
-### Files
-- `client/src/pages/Dashboard.jsx` - Multiple state variables
-- `client/src/pages/Tasks.jsx` - Filter state + functional updates
-- `client/src/pages/TaskDetails.jsx` - Form state
-- `client/src/components/TaskForm.jsx` - Controlled inputs
-
-### Basic useState
+**File**: [`client/src/components/TaskForm.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/TaskForm.jsx#L9-L14)
 
 ```javascript
-import { useState } from 'react';
-
-function Counter() {
-  const [count, setCount] = useState(0);
-  
-  return (
-    <button onClick={() => setCount(count + 1)}>
-      Count: {count}
-    </button>
-  );
-}
+const [formData, setFormData] = useState({
+  title: initialData.title || '',
+  description: initialData.description || '',
+  status: initialData.status || 'todo',
+  projectId: initialData.project_id || ''
+});
 ```
 
-### Multiple State Variables
+---
 
+## TaskForm State Architecture & Modes
+
+### 1. Create Mode
+When creating a new task, no `initialData` object is passed (`initialData = {}`). `useState` initializes form inputs to clean default values:
+- `title`: `''`
+- `description`: `''`
+- `status`: `'todo'`
+- `projectId`: `''`
+
+### 2. Edit Mode
+When editing an existing task, `initialData` is supplied with existing task properties (e.g. `{ title: 'Fix bug', status: 'in_progress', project_id: 2 }`). `useState` initializes `formData` with these pre-populated fields.
+
+---
+
+## Single Object State vs Multiple State Variables
+
+### Single Object State (`formData`)
 ```javascript
-// client/src/pages/Dashboard.jsx
-function Dashboard() {
-  const [tasks, setTasks] = useState([]);       // Data
-  const [projects, setProjects] = useState([]); // Data
-  const [loading, setLoading] = useState(true); // UI state
-  const [error, setError] = useState(null);     // Error state
-  
-  // ... fetch and update
-}
+const [formData, setFormData] = useState({ title: '', description: '', status: 'todo', projectId: '' });
 ```
 
-### Functional Updates
+**Advantages**:
+- **Logical Cohesion**: Keeps all form field values tightly coupled inside a single state container matching the API request body payload structure.
+- **Unified Submit Handler**: Submitting requires passing `formData` directly rather than constructing a payload from 4 distinct variables.
+- **Fewer Declarations**: Eliminates boilerplate state setter calls for every individual input.
 
+**Trade-offs & Constraints**:
+- **Immutable Preservation Required**: Updating any single property requires spreading the existing object (`...prev`). Omitting `...prev` overwrites the entire state object with only the modified field.
+- **Re-render Scope**: Updating one property re-evaluates the entire `formData` reference.
+
+---
+
+## Controlled Inputs & Immutable Update Pattern
+
+### Controlled Input Mechanics
+In `TaskForm.jsx`, form inputs are fully controlled. The input value comes from React state, and changes flow back through state updates:
+
+```jsx
+<input
+  type="text"
+  id="title"
+  name="title"
+  value={formData.title}
+  onChange={handleChange}
+/>
+```
+
+### Immutable Update Pattern (Correct)
 ```javascript
-// Important: use functional update when prev state matters
-function Tasks() {
-  const [tasks, setTasks] = useState([]);
-  
-  // WRONG: tasks.push() mutates directly
-  // setTasks([...tasks, newTask]);
-  
-  // CORRECT: functional update
-  const addTask = (newTask) => {
-    setTasks(prev => [...prev, newTask]); // prev is current state
-  };
-  
-  const deleteTask = (id) => {
-    setTasks(prev => prev.filter(t => t.id !== id));
-  };
-}
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({
+    ...prev,
+    [name]: value
+  }));
+};
 ```
 
-### Controlled Inputs
-
+### Why Direct Mutation Fails
 ```javascript
-// TaskForm.jsx - controlled inputs with useState
-function TaskForm({ initialData, onSubmit }) {
-  const [formData, setFormData] = useState({
-    title: initialData.title || '',
-    description: initialData.description || '',
-    status: initialData.status || 'todo'
-  });
-  
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  return (
-    <form onSubmit={handleSubmit}>
-      <input 
-        name="title" 
-        value={formData.title} 
-        onChange={handleChange} 
-      />
-      <textarea 
-        name="description" 
-        value={formData.description} 
-        onChange={handleChange} 
-      />
-    </form>
-  );
-}
+// ❌ WRONG: Direct mutation of state object
+formData[name] = value; 
+setFormData(formData); // React detects same object reference (Object.is) and SKIPS re-render!
 ```
 
-### State with Filtering
+---
 
-```javascript
-// client/src/pages/Tasks.jsx
-function Tasks() {
-  const [tasks, setTasks] = useState([]);      // All tasks
-  const [filteredTasks, setFilteredTasks] = useState([]); // Displayed
-  const [statusFilter, setStatusFilter] = useState('all'); // Filter
-  
-  // Apply filter when status changes
-  useEffect(() => {
-    if (statusFilter === 'all') {
-      setFilteredTasks(tasks);
-    } else {
-      setFilteredTasks(tasks.filter(t => t.status === statusFilter));
-    }
-  }, [statusFilter, tasks]);
-  
-  return (
-    <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-      <option value="all">All</option>
-      <option value="completed">Completed</option>
-    </select>
-  );
-}
-```
+## Viva Reviewer Questions & Answers
 
-## Key Points
+**Q: In TaskForm, why did you choose one formData object instead of separate state variables?**  
+**A**: A single `formData` object keeps form fields logically grouped together, matching the payload sent to the backend. It avoids managing separate state hooks for every field and simplifies form submission.
 
-1. **Never mutate state directly** - Use setState functions
-2. **Use functional updates** - When previous state is needed
-3. **Controlled inputs** - Value from state, onChange updates state
-4. **Trigger re-renders** - setState triggers component re-render
+**Q: What changes when initialData is provided for editing?**  
+**A**: `initialData` pre-populates `formData` properties during state initialization, seamlessly switching `TaskForm` from Create mode to Edit mode.
 
-## Common Mistakes
-
-❌ Wrong:
-```javascript
-tasks.push(newTask);
-setTasks(tasks);
-```
-
-✅ Correct:
-```javascript
-setTasks(prev => [...prev, newTask]);
-```
-
-## How to Demonstrate
-
-1. Go to Tasks page
-2. Change filter - state updates, UI re-renders
-3. Create task - new task appears (state update)
-4. Delete task - task removed (state update)
-
-## Viva Questions
-
-**Q: What is state?**
-A: Data that changes over time in a component, stored with useState, that triggers re-renders when updated.
-
-**Q: What does the setter do?**
-A: It updates the state value and triggers React to re-render the component with the new state.
-
-**Q: Why should state not be mutated directly?**
-A: React relies on state changes to detect updates and trigger re-renders. Direct mutation won't trigger re-renders and breaks React's internal tracking.
-
-**Q: When would you use a functional state update?**
-A: When the new state depends on the previous state. Using the functional form ensures you're working with the most current state value.
+**Q: What is the trade-off of single-object form state?**  
+**A**: Every change handler must immutably spread previous state (`...prev`). Direct object mutation (`formData.title = 'x'`) will fail to trigger a re-render because React performs a reference equality check (`Object.is`).

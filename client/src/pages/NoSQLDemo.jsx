@@ -125,8 +125,8 @@ function NoSQLDemo() {
                 <div className="pipeline-example">
                   <h4>$match - Filter Documents</h4>
                   <p><strong>Description:</strong> Equivalent to SQL WHERE clause</p>
-                  <div className="code-title">Find items in store A with quantity > 4</div>
-                  <pre className="code-block">db.collection.find({ store: "A", quantity: { $gt: 4 } })</pre>
+                  <div className="code-title">Find items in store A with quantity &gt; 4</div>
+                  <pre className="code-block">{'db.collection.find({ store: "A", quantity: { $gt: 4 } })'}</pre>
                   <div className="result-title">Result:</div>
                   <pre className="code-block result">{JSON.stringify(nosqlConcepts.getAggregationPipelineExample().examples.match.result, null, 2)}</pre>
                 </div>
@@ -136,13 +136,13 @@ function NoSQLDemo() {
                   <h4>$group - Group Documents</h4>
                   <p><strong>Description:</strong> Equivalent to SQL GROUP BY with aggregates</p>
                   <div className="code-title">Group by store and calculate totals</div>
-                  <pre className="code-block">db.collection.aggregate([
+                  <pre className="code-block">{`db.collection.aggregate([
   { $group: {
     _id: "$store",
     totalQuantity: { $sum: "$quantity" },
     totalSales: { $sum: { $multiply: ["$quantity", "$price"] } }
   } }
-])</pre>
+])`}</pre>
                   <div className="result-title">Result:</div>
                   <pre className="code-block result">{JSON.stringify(nosqlConcepts.getAggregationPipelineExample().examples.group.result, null, 2)}</pre>
                 </div>
@@ -152,14 +152,14 @@ function NoSQLDemo() {
                   <h4>$lookup - Join Collections</h4>
                   <p><strong>Description:</strong> Equivalent to SQL LEFT JOIN</p>
                   <div className="code-title">Join orders with inventory information</div>
-                  <pre className="code-block">db.orders.aggregate([
+                  <pre className="code-block">{`db.orders.aggregate([
   { $lookup: {
     from: "inventory",
     localField: "item",
     foreignField: "item",
     as: "inventoryInfo"
   } }
-])</pre>
+])`}</pre>
                   <div className="result-title">Result:</div>
                   <pre className="code-block result">{JSON.stringify(nosqlConcepts.getAggregationPipelineExample().examples.lookup.result, null, 2)}</pre>
                 </div>
@@ -169,7 +169,7 @@ function NoSQLDemo() {
                   <h4>$sort - Sort Documents</h4>
                   <p><strong>Description:</strong> Equivalent to SQL ORDER BY</p>
                   <div className="code-title">Sort by quantity descending</div>
-                  <pre className="code-block">db.collection.find().sort({ quantity: -1 })</pre>
+                  <pre className="code-block">{'db.collection.find().sort({ quantity: -1 })'}</pre>
                   <div className="result-title">Result:</div>
                   <pre className="code-block result">{JSON.stringify(nosqlConcepts.getAggregationPipelineExample().examples.sort.result, null, 2)}</pre>
                 </div>

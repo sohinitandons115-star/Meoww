@@ -103,7 +103,7 @@ export async function deleteProject(id) {
   if (!response.ok) {
     if (response.status === 404) {
       const error = new Error('Project not found');
-      error.status = 4.04;
+      error.status = 404;
       throw error;
     }
     const error = new Error('Failed to delete project');

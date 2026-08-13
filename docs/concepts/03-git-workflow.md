@@ -1,128 +1,66 @@
-# Concept 3: Git Workflow
+# Concept 3: Hexa Git Workflow, Branch Strategy & Pull Request Evidence
 
 ## Definition
-Git workflow is a structured approach to version control that involves creating branches, making commits, and merging changes. A proper workflow enables collaboration, code review, and historical tracking.
+A disciplined Git workflow guarantees codebase stability, enables parallel feature development across branches, enforces peer code reviews, and provides an auditable version history for production deployments.
 
-## Implementation
+---
 
-### Branch Strategy
+## Primary Repository Evidence
 
+- **Repository**: [`hardikkaurani/Hexa`](file:///c:/Users/hardi/Hexa)
+- **Primary Production Branch**: `main`
+- **Active Feature Branch**: `feature/viva-hardening`
+- **PR Template File**: [`.github/pull_request_template.md`](file:///c:/Users/hardi/Hexa/.github/pull_request_template.md)
+
+---
+
+## Branching & Feature Workflow Architecture
+
+```text
+Issue / Feature Task
+        │
+        ▼
+Create Feature Branch (git checkout -b feature/viva-hardening)
+        │
+        ▼
+Atomic Commits (git commit -m "feat(...): ...")
+        │
+        ▼
+Local Build & Test Verification (npm run build && npm test)
+        │
+        ▼
+Push Branch to Remote (git push origin feature/viva-hardening)
+        │
+        ▼
+Create Pull Request (Utilizing .github/pull_request_template.md)
+        │
+        ▼
+Peer Code Review & Rebase / Merge into main
 ```
-main (production-ready code)
-  │
-  ├── feature/database-schema
-  │   └── PostgreSQL tables with PK/FK
-  │
-  ├── feature/backend-api
-  │   ├── Express routes
-  │   ├── Controllers, Services, Repositories
-  │   └── Error handling middleware
-  │
-  ├── feature/frontend-routing
-  │   ├── React Router setup
-  │   └── All page routes
-  │
-  ├── feature/task-management-ui
-  │   ├── Task components
-  │   └── Task CRUD pages
-  │
-  ├── feature/concept-demos
-  │   ├── Event loop demo
-  │   ├── Hoisting demo
-  │   └── Promise vs callback demo
-  │
-  └── docs/documentation
-      ├── API docs
-      ├── Architecture docs
-      └── Viva documentation
-```
 
-### Commit Messages
+---
+
+## Real Hexa Git Branch Evidence
 
 ```bash
-# Feature commits
-feat: add PostgreSQL relational schema with PK/FK
-feat: add task CRUD API endpoints
-feat: add React client routing with React Router
-feat: add task management UI components
-feat: add JavaScript concept demonstrations
-
-# Fix commits  
-fix: handle 404 responses for missing resources
-fix: validate required fields in task creation
-
-# Docs commits
-docs: add API documentation
-docs: add viva preparation guide
+* main (Production stable branch)
+  remotes/origin/main
+  remotes/origin/pr/concepts-implementation
+* feature/viva-hardening (Feature branch for viva hardening)
 ```
 
-## Commands Used
+---
 
-```bash
-# Create feature branch
-git checkout -b feature/database-schema
+## Viva Reviewer Questions & Answers
 
-# Stage changes
-git add database/schema.sql
-git add database/seed.sql
+**Q: Which branch did you use for developing feature improvements?**  
+**A**: We developed features on `feature/viva-hardening` before testing, building, and merging back into the primary production branch `main`.
 
-# Commit with message
-git commit -m "feat: add PostgreSQL relational schema with PK/FK"
+**Q: Why do you use feature branches instead of committing directly to main?**  
+**A**: Feature branches isolate incomplete code changes from production, enabling independent testing, peer code reviews via Pull Requests, and preventing broken builds on `main`.
 
-# Push branch
-git push -u origin feature/database-schema
+**Q: How do you resolve branch divergence and merge conflicts?**  
+**A**: When `main` advances while a feature branch is active, we fetch `main` (`git fetch origin`) and rebase or merge `main` into our feature branch (`git merge main`), resolving conflicting lines manually before running verification tests.
 
-# Merge after review
-git checkout main
-git merge feature/database-schema
-```
-
-## Pull Request Template
-
-```markdown
-## Summary
-Brief description of changes
-
-## Changes
-- Added users table
-- Added projects table with FK to users
-- Added tasks table with FK to projects and users
-
-## Testing
-- Tested database schema creation
-- Verified seed data loads correctly
-
-## Concepts Demonstrated
-- PostgreSQL PK/FK relationships
-- Referential integrity
-- JOIN queries
-
-## Screenshots
-(if applicable)
-```
-
-## How to Demonstrate
-
-1. **Check Git history** - `git log --oneline`
-2. **View branches** - `git branch -a`
-3. **Show commit structure** - `git log --graph --oneline`
-4. **Check .gitignore** - Confirms secrets excluded
-
-## Best Practices
-
-- Use feature branches for new work
-- Make focused, logical commits
-- Write descriptive commit messages
-- Use present tense ("add" not "added")
-- Review before merging
-
-## Viva Questions
-
-**Q: Why use feature branches?**
-A: They isolate work in progress, allow parallel development, and prevent unstable code from reaching main.
-
-**Q: What makes a good commit?**
-A: A single, focused change that can be understood independently. Each commit should represent one logical change.
-
-**Q: What should happen before merging a PR?**
-A: Code review, tests passing, and verification that it integrates properly with the main branch.
+**Q: What does a clean working tree mean?**  
+**A**: A clean working tree (`git status` returning "nothing to commit, working tree clean") means all local modifications and new files have been staged and committed, leaving no untracked or modified files behind.

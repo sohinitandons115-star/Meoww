@@ -1,121 +1,84 @@
-# Concept 6: JavaScript async/await
+# Concept 6: JavaScript async/await & Promise Execution Models
 
 ## Definition
-async/await is syntactic sugar over Promises that allows writing asynchronous code in a more synchronous, readable style. An async function automatically returns a Promise, and await pauses execution until the Promise resolves.
+`async/await` is syntactic sugar built on top of native JavaScript Promises. The `async` keyword ensures a function returns a Promise, while `await` pauses execution within the `async` function until the Promise settles (resolves or rejects), all without blocking the single-threaded JavaScript Event Loop.
 
-## Implementation
+---
 
-### Files
-- `client/src/api/taskApi.js` - All API functions
-- `client/src/api/projectApi.js` - Project API
-- `client/src/pages/*.jsx` - Used throughout
+## Primary Repository Evidence
 
-### Basic async/await
+**Files**: [`client/src/api/projectApi.js`](file:///c:/Users/hardi/Hexa/client/src/api/projectApi.js), [`client/src/pages/Dashboard.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/Dashboard.jsx#L20-L40)
 
 ```javascript
-// Async function to fetch tasks
-export async function getTasks() {
-  const response = await fetch('/api/tasks');
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch tasks');
+// client/src/pages/Dashboard.jsx
+useEffect(() => {
+  async function loadDashboardData() {
+    try {
+      setLoading(true);
+      // Parallel execution via Promise.all
+      const [projectsData, tasksData] = await Promise.all([
+        getProjects(),
+        getTasks()
+      ]);
+      setProjects(projectsData);
+      setTasks(tasksData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
-  
-  return response.json();
-}
-
-// Using the async function
-async function loadTasks() {
-  try {
-    const tasks = await getTasks();
-    console.log(tasks);
-  } catch (error) {
-    console.error('Error:', error.message);
-  }
-}
+  loadDashboardData();
+}, []);
 ```
 
-### Parallel Requests
+---
+
+## Sequential Execution vs Parallel Execution (`Promise.all`)
+
+### 1. Sequential Execution (Dependent Requests)
+When Request B depends on data returned by Request A, calls must be awaited sequentially:
 
 ```javascript
-// Using Promise.all for parallel execution
-async function loadDashboard() {
-  const [tasks, projects] = await Promise.all([
-    getTasks(),
-    getProjects()
-  ]);
-  
-  return { tasks, projects };
-}
+// Sequential: Total duration = Time(Project) + Time(Tasks)
+const project = await getProject(projectId); // Wait for project details first
+const tasks = await getTasksByProject(project.id); // Dependent query requiring project.id
 ```
 
-### Sequential Execution
+### 2. Parallel Execution (Independent Requests)
+When requests are independent, executing them concurrently using `Promise.all` reduces total latency:
 
 ```javascript
-// Await each request sequentially
-async function fetchTaskDetails(taskId) {
-  const task = await getTask(taskId);
-  const project = await getProject(task.project_id);
-  return { task, project };
-}
+// Parallel: Total duration = Max(Time(Projects), Time(Tasks))
+const [projects, tasks] = await Promise.all([
+  getProjects(),
+  getTasks()
+]);
 ```
 
-## Key Concepts
+---
 
-### async Function
-- Always returns a Promise
-- Enables use of await keyword
-- Can be used with .then() if needed
+## Error Handling with try/catch
 
-### await Keyword
-- Pauses execution of async function
-- Waits for Promise to resolve
-- Does NOT block JavaScript runtime
-- Can only be used inside async functions
-
-### Error Handling
-```javascript
-// Try/catch for error handling
-async function safeGetTasks() {
-  try {
-    const tasks = await getTasks();
-    return { success: true, data: tasks };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-```
-
-## Common Misconception
-
-**Myth**: "await blocks JavaScript"
-**Reality**: await only pauses the async function's execution. The JavaScript runtime can execute other code while waiting.
+Rejected Promises are handled using standard synchronous `try/catch` syntax:
 
 ```javascript
-async function demo() {
-  console.log('1. Start');
-  
-  await new Promise(r => setTimeout(r, 1000));
-  
-  console.log('2. After await'); // Runs after 1 second
-  
-  console.log('3. This also runs'); // Immediately after
+try {
+  const data = await getProject(id);
+} catch (error) {
+  console.error('Fetch failed with status:', error.status);
 }
 ```
 
-## How to Demonstrate
+---
 
-1. Check `client/src/api/taskApi.js` - All functions use async/await
-2. Create a task - See async flow
-3. Check Network tab - Requests are async
+## Viva Reviewer Questions & Answers
 
-## Viva Questions
+**Q: Where is async/await used in real Hexa code?**  
+**A**: In `client/src/api/projectApi.js` for API request functions and in `Dashboard.jsx` inside the `loadDashboardData()` effect handler.
 
-**Q: What does async do?**
-A: It marks a function as asynchronous, making it return a Promise automatically.
+**Q: When would you use sequential awaits vs Promise.all?**  
+**A**: Use sequential `await` when Request B requires data from Request A (e.g. `getTasksByProject(project.id)`). Use `Promise.all` when requests are independent (e.g. fetching projects and tasks simultaneously on `Dashboard.jsx`).
 
-**Q: What does await do?**
-A: It pauses execution of the async function until the awaited Promise resolves, without blocking the JavaScript runtime.
-
-**Q: Does await block JavaScript?**
-A: No! await only pauses the async function. Other JavaScript code can execute while waiting. The event loop continues processing.
+**Q: Does await block the JavaScript main thread?**  
+**A**: No. `await` pauses execution inside the `async` function scope, allowing the Event Loop to continue processing user inputs and microtasks until the Promise resolves.
