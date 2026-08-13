@@ -1,128 +1,60 @@
-# Concept 7: JavaScript Closures
+# Concept 7: JavaScript Closures & Lexical Scoping
 
 ## Definition
-A closure is a function that retains access to variables from its outer (enclosing) scope even after the outer function has finished executing. The inner function "closes over" the variables it needs from its lexical environment.
+A **Closure** is a fundamental JavaScript concept where an inner function retains access to variables declared in its outer (enclosing) lexical scope, even after the outer function has finished executing and returned.
 
-## Implementation
+---
 
-### Files
-- `client/src/utils/createTaskFilter.js` - Real closure usage
-- `client/src/pages/Tasks.jsx` - Uses closure-based filtering
+## Primary Repository Evidence
 
-### Closure Example
+**Utility Module**: [`client/src/utils/createTaskFilter.js`](file:///c:/Users/hardi/Hexa/client/src/utils/createTaskFilter.js#L6-L12)
 
 ```javascript
-// client/src/utils/createTaskFilter.js
-
-// Outer function creates and returns a closure
+// Outer higher-order factory function
 export function createTaskFilter(status) {
-  // 'status' is captured in the closure's lexical environment
-  // This variable remains accessible even after createTaskFilter returns
-  
+  // Inner function (closure) captures 'status' variable in its lexical environment
   return function filterTasks(tasks) {
-    // This inner function is the closure
-    // It has access to 'status' from its outer scope
     return tasks.filter(task => task.status === status);
   };
 }
+```
 
-// Usage demonstrating closure
+---
+
+## Usage in Hexa Components
+
+**File**: [`client/src/pages/Tasks.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/Tasks.jsx)
+
+```javascript
+import { createTaskFilter } from '../utils/createTaskFilter.js';
+
+// Instantiating distinct closure instances:
 const completedFilter = createTaskFilter('completed');
 const todoFilter = createTaskFilter('todo');
 
-const tasks = [
-  { id: 1, title: 'Task 1', status: 'completed' },
-  { id: 2, title: 'Task 2', status: 'todo' },
-  { id: 3, title: 'Task 3', status: 'completed' }
-];
-
-completedFilter(tasks);  // Returns tasks with status 'completed'
-todoFilter(tasks);       // Returns tasks with status 'todo'
-
-// Each filter function has its OWN captured 'status' variable
+// Applying filters to task collection:
+const completedTasks = completedFilter(allTasks); // Uses captured status = 'completed'
+const todoTasks = todoFilter(allTasks);          // Uses captured status = 'todo'
 ```
 
-### More Complex Closure
+---
 
-```javascript
-// Closure with multiple captured variables
-export function createAdvancedFilter(options) {
-  const { status, projectId, searchTerm } = options;
-  
-  // This function closes over status, projectId, and searchTerm
-  return function advancedFilter(tasks) {
-    return tasks.filter(task => {
-      let matches = true;
-      
-      if (status && task.status !== status) matches = false;
-      if (projectId && task.project_id !== projectId) matches = false;
-      if (searchTerm && !task.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-        matches = false;
-      }
-      
-      return matches;
-    });
-  };
-}
-```
+## How Lexical Scope Capture Works
 
-### Used in React Component
+1. **Outer Execution**: Calling `createTaskFilter('completed')` creates a new execution context with local variable `status = 'completed'`.
+2. **Closure Creation**: `createTaskFilter` returns the `filterTasks` function reference, which bundles its code body with a reference to its lexical environment containing `status`.
+3. **Outer Function Exit**: `createTaskFilter` finishes execution and leaves the call stack.
+4. **Invocation Phase**: When `completedFilter(allTasks)` is invoked later, it accesses `status` from its captured lexical environment, evaluating `task.status === 'completed'`.
 
-```javascript
-// client/src/pages/Tasks.jsx
-import { createTaskFilter } from '../utils/createTaskFilter.js';
+---
 
-function Tasks() {
-  const [statusFilter, setStatusFilter] = useState('all');
-  
-  // Apply filter - closure captures statusFilter
-  useEffect(() => {
-    if (statusFilter === 'all') {
-      setFilteredTasks(tasks);
-    } else {
-      // createTaskFilter returns a closure that captures statusFilter
-      const filter = createTaskFilter(statusFilter);
-      setFilteredTasks(filter(tasks));
-    }
-  }, [statusFilter, tasks]);
-}
-```
+## Viva Reviewer Questions & Answers
 
-## How Closures Work
+**Q: Show me the variable captured by the closure in Hexa.**  
+**A**: In `client/src/utils/createTaskFilter.js`, the inner function `filterTasks` captures the `status` parameter from the outer `createTaskFilter` scope.
 
-```
-1. createTaskFilter('completed') is called
-2. Outer function creates local variable: status = 'completed'
-3. Inner function (filterTasks) is defined and returned
-4. createTaskFilter finishes and returns
-5. BUT the returned function still has access to 'status'
-6. When filterTasks(tasks) is called later, it can still access 'status'
-```
+**Q: Why use a closure factory instead of passing status as an argument every time?**  
+**A**: Closures enable partial application and function encapsulation. We can construct specialized, pre-configured filter functions (`completedFilter`, `todoFilter`) and pass them cleanly into array processing methods or component handlers.
 
-## Why Closures Matter
-
-1. **Data privacy** - Create private variables
-2. **Function factories** - Generate specialized functions
-3. **Event handlers** - Retain state at definition time
-4. **Callbacks** - Maintain context
-
-## How to Demonstrate
-
-1. Navigate to Tasks page
-2. Filter by status (To Do, In Progress, Completed)
-3. The filter function uses a closure that captures the status value
-4. Check `client/src/utils/createTaskFilter.js`
-
-## Viva Questions
-
-**Q: What is a closure?**
-A: A function that has access to variables from its outer scope even after the outer function has returned.
-
-**Q: Show me the closure in your repository.**
-A: In `client/src/utils/createTaskFilter.js`, the `filterTasks` function is a closure that captures the `status` variable from `createTaskFilter`.
-
-**Q: What variable is captured?**
-A: The `status` parameter is captured. Even after `createTaskFilter` finishes executing, the returned function can still access `status`.
-
-**Q: Why is the captured variable still accessible?**
-A: Because the closure maintains a reference to its lexical environment where `status` exists. It doesn't copy the value—it keeps the scope alive.
+**Q: Does closure variable capture cause memory leaks?**  
+**A**: JavaScript garbage collection retains captured variables as long as the inner function reference (`completedFilter`) remains accessible. Memory is freed once all references to the inner function are cleared.
