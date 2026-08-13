@@ -3,11 +3,17 @@
 // This is a mock implementation for demonstration purposes
 
 import { v4 as uuidv4 } from 'uuid';
+import Stripe from 'stripe';
 import config from '../config/env.js';
+
+// Initialize Stripe SDK instance for Payment Gateway Integration
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock_hexa_secret', {
+  apiVersion: '2023-10-16'
+});
 
 /**
  * Payment Service Class
- * Demonstrates payment gateway integration patterns
+ * Demonstrates payment gateway integration patterns with Stripe
  */
 class PaymentService {
   /**

@@ -1,7 +1,7 @@
 // Redis Utility Functions
 // Provides caching layer for improved performance
 
-import redis from 'redis';
+import { createClient } from 'redis';
 import config from '../config/env.js';
 
 // Create Redis client
@@ -9,7 +9,7 @@ let redisClient = null;
 
 export async function connectRedis() {
   try {
-    redisClient = redis.createClient({
+    redisClient = createClient({
       url: config.redisUrl || 'redis://localhost:6379'
     });
 
