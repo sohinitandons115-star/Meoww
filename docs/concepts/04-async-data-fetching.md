@@ -1,146 +1,86 @@
-# Concept 4: Async Data Fetching from API
+# Concept 4: Asynchronous Data Fetching from API
 
 ## Definition
-Async data fetching is the process of requesting data from a server without blocking the user interface. The frontend makes HTTP requests to the backend API and handles responses asynchronously using JavaScript's async capabilities.
+Asynchronous data fetching enables a web application to request external data over HTTP without blocking the main browser thread or user interface execution. Hexa utilizes the native browser `fetch()` API wrapped in `async/await` syntax to communicate with the Express backend server.
 
-## Implementation
+---
 
-### Files
-- `client/src/api/taskApi.js` - Task API functions
-- `client/src/api/projectApi.js` - Project API functions
-- `client/src/pages/Tasks.jsx` - Using async data
-- `server/src/routes/taskRoutes.js` - Backend routes
+## Primary Repository Evidence
 
-### API Layer (Client)
+**API Module**: [`client/src/api/projectApi.js`](file:///c:/Users/hardi/Hexa/client/src/api/projectApi.js#L18-L31)
 
 ```javascript
-// client/src/api/taskApi.js
-
-// Get all tasks - async/await pattern
-export async function getTasks() {
-  const response = await fetch('/api/tasks');
+export async function getProject(id) {
+  const response = await fetch(`/api/projects/${id}`);
   if (!response.ok) {
-    const error = new Error('Failed to fetch tasks');
+    if (response.status === 404) {
+      const error = new Error('Project not found');
+      error.status = 404;
+      throw error;
+    }
+    const error = new Error('Failed to fetch project');
     error.status = response.status;
     throw error;
   }
   return response.json();
 }
-
-// Create task - POST returns 201
-export async function createTask(taskData) {
-  const response = await fetch('/api/tasks', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(taskData)
-  });
-  
-  if (!response.ok) {
-    if (response.status === 400) {
-      const errorData = await response.json();
-      const error = new Error(errorData.error?.message || 'Validation error');
-      error.status = 400;
-      throw error;
-    }
-  }
-  return response.json();
-}
 ```
 
-### Using in React Components
+---
 
-```javascript
-// client/src/pages/Dashboard.jsx
-import { useState, useEffect } from 'react';
-import { getTasks } from '../api/taskApi.js';
+## End-to-End Request & Response Sequence Flow
 
-function Dashboard() {
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Fetch data on component mount
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const data = await getTasks();
-        setTasks(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
-
-  // Render based on state
-  if (loading) return <LoadingState />;
-  if (error) return <ErrorState message={error} />;
-  return <TaskList tasks={tasks} />;
-}
+```text
+ProjectDetails (React Component)
+  │
+  ▼
+getProject(id) [client/src/api/projectApi.js]
+  │
+  ▼
+fetch('/api/projects/:id') [HTTP GET Request]
+  │
+  ▼
+Express Route Handler [server/src/routes/projectRoutes.js]
+  │
+  ▼
+ProjectController [server/src/controllers/projectController.js]
+  │
+  ▼
+ProjectService [server/src/services/projectService.js]
+  │
+  ▼
+ProjectRepository [server/src/repositories/projectRepository.js]
+  │
+  ▼
+PostgreSQL Database (Executes SELECT query)
+  │
+  ▼
+JSON Response Payload (HTTP Status 200 OK / 404 Not Found)
+  │
+  ▼
+React useState Updates (setProject(data) / setError(err))
+  │
+  ▼
+UI Re-renders with Project Details
 ```
 
-## Request Lifecycle
+---
 
-```
-React Component
-      │
-      ▼
-API Function (taskApi.js)
-      │
-      ▼
-fetch('/api/tasks')
-      │
-      ▼
-Express Route (taskRoutes.js)
-      │
-      ▼
-Controller (taskController.js)
-      │
-      ▼
-Service (taskService.js)
-      │
-      ▼
-Repository (taskRepository.js)
-      │
-      ▼
-PostgreSQL Database
-      │
-      ▼
-Response flows back
-      │
-      ▼
-React State (useState)
-      │
-      ▼
-UI Update
-```
+## Granular HTTP Error Status Handling
 
-## Error Handling
+Hexa's API layer explicitly differentiates HTTP error statuses rather than collapsing all failures into generic error messages:
 
-The implementation handles:
-- **Loading state**: While fetch is in progress
-- **Success state**: Data received successfully
-- **Error state**: Network or server errors
-- **HTTP errors**: 400, 404, 500 responses
+1. **400 Bad Request**: Throws validation error with specific backend error details (`error.status = 400`).
+2. **404 Not Found**: Throws explicit resource missing error (`error.status = 404`).
+3. **500 Server Error**: Captures unexpected server failures (`error.status = 500`).
+4. **Network Failures**: Caught by `try/catch` blocks in React components during network disconnection.
 
-## How to Demonstrate
+---
 
-1. Open browser DevTools → Network tab
-2. Navigate to Tasks page
-3. Observe: GET /api/tasks request
-4. See: 200 OK response with JSON data
-5. Create a task: POST /api/tasks → 201
-6. Delete a task: DELETE → 204
+## Viva Reviewer Questions & Answers
 
-## Viva Questions
+**Q: Trace an asynchronous data request in Hexa from the UI to the database.**  
+**A**: `ProjectDetails.jsx` calls `getProject(id)`, triggering `fetch('/api/projects/1')`. The Express route routes it to `ProjectController` → `ProjectService` → `ProjectRepository` → PostgreSQL. The returned JSON updates `project` state and re-renders the UI.
 
-**Q: Why is fetch asynchronous?**
-A: Network requests take variable time. Async allows the UI to remain responsive while waiting for the server response.
-
-**Q: How do you handle API failure?**
-A: Check response.ok, throw errors with meaningful messages, catch in components, update error state to show user-friendly message.
-
-**Q: Where is loading state stored?**
-A: In React state using useState hook (e.g., `const [loading, setLoading] = useState(true)`)
+**Q: How does Hexa handle 404 vs 400 errors during fetching?**  
+**A**: `projectApi.js` checks `response.status`. A `400` reads the validation error payload, while a `404` throws a "Project not found" error with `error.status = 404`.
