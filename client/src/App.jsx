@@ -3,6 +3,7 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Tasks from './pages/Tasks.jsx';
 import TaskDetails from './pages/TaskDetails.jsx';
@@ -25,7 +26,6 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="tasks" element={<Tasks />} />
-          <Route path="tasks/new" element={<CreateTask />} />
           <Route path="tasks/:id" element={<TaskDetails />} />
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:id" element={<ProjectDetails />} />
@@ -37,6 +37,11 @@ function App() {
           <Route path="ssr-demo" element={<SSRDemo />} />
           <Route path="payment-demo" element={<PaymentDemo />} />
           <Route path="worker-demo" element={<WorkerDemo />} />
+
+          {/* Protected Client-Side Routes guarded by ProtectedRoute */}
+          <Route element={<ProtectedRoute isAuthenticated={true} />}>
+            <Route path="tasks/new" element={<CreateTask />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>
