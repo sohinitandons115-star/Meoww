@@ -1,123 +1,70 @@
-# Concept 11: React Component Composition
+# Concept 11: React Component Composition & Reusability
 
 ## Definition
-Component composition is the pattern of building complex UIs by combining smaller, reusable components. Components accept props (including children) and render smaller pieces that together form the complete UI.
+Component composition is a core React architectural pattern where complex UI views are built by assembling smaller, focused, and self-contained components together. Instead of building monolithic pages or using inheritance, components accept props and children to customize their presentation and behavior.
 
-## Implementation
+---
 
-### Files
-- `client/src/components/Layout.jsx` - Container component
-- `client/src/components/Navbar.jsx` - Navigation
-- `client/src/components/PageContainer.jsx` - Page wrapper with children
-- `client/src/components/TaskList.jsx` - List container
-- `client/src/components/TaskCard.jsx` - Individual item
-- `client/src/App.jsx` - Root composition
+## Hexa Component Hierarchy Architecture
 
-### Composition Hierarchy
-
-```
-App
- └── Layout
-      ├── Navbar
-      └── PageContainer
-           └── (children from route)
-                └── Dashboard
-                     ├── StatsGrid
-                     │    └── StatCard (×4)
-                     ├── QuickActions
-                     ├── RecentTasks
-                     │    └── TasksTable
-                     └── ProjectsGrid
-                          └── ProjectCard (×N)
+```text
+App (Router Container)
+ └── Layout (Global Navigation & Shell)
+      └── Page (e.g. Tasks, Projects, Dashboard)
+           ├── TaskList (Collection Container)
+           │    └── TaskCard (Item Presenter)
+           └── EmptyState (Reusable Fallback Presenter)
 ```
 
-### Using children Prop
+---
 
-```javascript
-// PageContainer.jsx - wraps children
-function PageContainer({ children, title, subtitle }) {
+## Primary Repository Evidence: Reusable `EmptyState`
+
+**File**: [`client/src/components/EmptyState.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/EmptyState.jsx)
+
+```jsx
+function EmptyState({ message = 'No data available', icon = '📋' }) {
   return (
-    <div className="page-container">
-      {title && <h1>{title}</h1>}
-      {subtitle && <p>{subtitle}</p>}
-      <div className="page-content">
-        {children}  {/* Content passed from parent */}
-      </div>
-    </div>
-  );
-}
-
-// Usage in Dashboard.jsx
-function Dashboard() {
-  return (
-    <PageContainer title="Dashboard" subtitle="Welcome to Hexa">
-      <StatsGrid />
-      <TaskList />
-    </PageContainer>
-  );
-}
-```
-
-### Reusable Components
-
-```javascript
-// TaskList.jsx - reusable list component
-function TaskList({ tasks, emptyMessage = 'No tasks found' }) {
-  if (!tasks || tasks.length === 0) {
-    return <EmptyState message={emptyMessage} />;
-  }
-
-  return (
-    <div className="task-list">
-      {tasks.map(task => (
-        <TaskCard key={task.id} task={task} />
-      ))}
-    </div>
-  );
-}
-
-// TaskCard.jsx - individual task display
-function TaskCard({ task }) {
-  return (
-    <div className="task-card">
-      <h3>{task.title}</h3>
-      <StatusBadge status={task.status} />
-      <p>{task.description}</p>
+    <div className="empty-state">
+      <div className="empty-icon">{icon}</div>
+      <p className="empty-message">{message}</p>
     </div>
   );
 }
 ```
 
-### Benefits of Composition
+### Parent Component Reuse Examples
 
-1. **Reusability**: Same component used in different places
-2. **Separation of concerns**: Each component has single responsibility
-3. **Maintainability**: Changes localized to specific components
-4. **Testability**: Test components in isolation
-5. **Readability**: Clear structure shows UI hierarchy
+1. **Tasks Page Usage** ([`client/src/pages/Tasks.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/Tasks.jsx)):
+```jsx
+<EmptyState 
+  message="No tasks found for this status filter" 
+  icon="📝" 
+/>
+```
 
-## Why Not Put Everything in App.jsx?
+2. **Projects Page Usage** ([`client/src/pages/Projects.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/Projects.jsx)):
+```jsx
+<EmptyState 
+  message="No active projects available" 
+  icon="📁" 
+/>
+```
 
-- Hard to understand
-- Difficult to maintain
-- Can't reuse logic or UI
-- Testing becomes complex
-- Violates single responsibility principle
+---
 
-## How to Demonstrate
+## Benefits of Component Composition in Hexa
 
-1. Check `client/src/components/` - all reusable components
-2. Check `App.jsx` - route composition
-3. See Layout > Navbar + PageContainer structure
-4. See TaskList > TaskCard structure
+1. **DRY (Don't Repeat Yourself)**: Markup, container CSS styles, and accessibility attributes for empty feedback states reside strictly inside `EmptyState.jsx`.
+2. **Prop Configuration**: Parents control message strings and icons dynamically without duplicating HTML layout code.
+3. **Decoupled Responsibilities**: `TaskList` focuses purely on mapping arrays, while `TaskCard` presents individual task details, and `EmptyState` renders fallback UI.
 
-## Viva Questions
+---
 
-**Q: What is component composition?**
-A: Building UIs by combining smaller, focused components together, passing data through props and using children for content.
+## Viva Reviewer Questions & Answers
 
-**Q: Why not put everything inside App.jsx?**
-A: It becomes hard to understand, maintain, test, and reuse. Components should have single responsibilities.
+**Q: Show me how EmptyState is reusable across Hexa.**  
+**A**: `EmptyState.jsx` takes configurable props (`message` and `icon`). `Tasks.jsx` renders it with a task icon (`📝`), while `Projects.jsx` reuses it with a project folder icon (`📁`).
 
-**Q: What is children?**
-A: A special prop that contains the content passed between component opening and closing tags, like `<PageContainer><Content /></PageContainer>`.
+**Q: Why use component composition instead of building large monolithic page components?**  
+**A**: Composition splits complex UI into modular, testable components (`App` → `Layout` → `Page` → `TaskList` → `TaskCard`). It prevents duplicate code and keeps component concerns clean.
