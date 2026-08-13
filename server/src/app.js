@@ -9,6 +9,8 @@ import authRoutes from './routes/authRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import nosqlRoutes from './routes/nosqlRoutes.js';
+import sanitizeMiddleware from './middleware/sanitizeInput.js';
 import errorHandler from './middleware/errorHandler.js';
 import notFound from './middleware/notFound.js';
 import { ssrMiddleware } from './ssr.js';
@@ -35,6 +37,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(sanitizeMiddleware); // Input sanitization middleware for XSS prevention
 
 // SSR middleware (for demonstration - in practice, you'd configure which routes to SSR)
 app.use(ssrMiddleware());
@@ -50,6 +53,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/nosql', nosqlRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
