@@ -1,117 +1,129 @@
-# Hexa Viva Cheat Sheet
+# Hexa Rapid Viva Examiner Cheat Sheet
 
-Quick reference for all 13 mandatory concepts.
-
----
-
-## 1. HTTP Status Codes
-- **Definition**: Three-digit responses indicating request outcomes
-- **File**: `server/src/routes/taskRoutes.js`, `server/src/controllers/taskController.js`
-- **Demo**: Create task (201), Delete task (204), Invalid request (400), Not found (404)
-- **Key Answer**: 201 = new resource created, 204 = no content to return
-
-## 2. Environment Variables
-- **Definition**: Key-value pairs for configuration outside code
-- **File**: `server/src/config/env.js`, `.env.example`, `.gitignore`
-- **Demo**: Check .env.example, see .gitignore
-- **Key Answer**: Separates config from code, protects secrets
-
-## 3. Git Workflow
-- **Definition**: Structured version control with branches and commits
-- **File**: `.git/`, branch structure
-- **Demo**: `git log --oneline`, `git branch -a`
-- **Key Answer**: Feature branches isolate work, focused commits
-
-## 4. Async API Fetching
-- **Definition**: Non-blocking HTTP requests using fetch and async/await
-- **File**: `client/src/api/taskApi.js`, `client/src/api/projectApi.js`
-- **Demo**: Open Tasks page, check Network tab
-- **Key Answer**: React → API → Express → Database → State → UI
-
-## 5. Client-Side Routing
-- **Definition**: SPA navigation without page reloads
-- **File**: `client/src/App.jsx`
-- **Demo**: Navigate between pages, check URL changes
-- **Key Answer**: React Router uses History API, no server round-trip
-
-## 6. Async/Await
-- **Definition**: Syntax for handling Promises with synchronous appearance
-- **File**: `client/src/api/*.js` (all API functions)
-- **Demo**: API calls use async/await throughout
-- **Key Answer**: async returns Promise, await pauses function (not blocking!)
-
-## 7. Closures
-- **Definition**: Function that retains access to outer scope variables
-- **File**: `client/src/utils/createTaskFilter.js`
-- **Demo**: Filter tasks by status
-- **Key Answer**: filterTasks captures 'status' from createTaskFilter
-
-## 8. Event Loop
-- **Definition**: JS mechanism handling async via call stack, microtask queue, task queue
-- **File**: `client/src/demos/eventLoopDemo.js`
-- **Demo**: Visit /concepts/event-loop
-- **Key Answer**: Sync → Microtasks (Promise) → Macrotasks (setTimeout)
-
-## 9. Hoisting
-- **Definition**: JS moves declarations to top of scope before execution
-- **File**: `client/src/demos/hoistingDemo.js`
-- **Demo**: Visit /concepts/hoisting
-- **Key Answer**: var hoisted as undefined, let/const in TDZ
-
-## 10. Promises vs Callbacks
-- **Definition**: Three async patterns: callbacks, Promises, async/await
-- **File**: `client/src/demos/promisesVsCallbacks.js`
-- **Demo**: Visit /concepts/promises
-- **Key Answer**: Callbacks → Promise → async/await (most readable)
-
-## 11. React Composition
-- **Definition**: Building UIs by combining smaller components
-- **File**: `client/src/components/*.jsx`
-- **Demo**: Layout > Navbar > PageContainer > TaskList > TaskCard
-- **Key Answer**: Reusable components with children prop
-
-## 12. useState
-- **Definition**: React Hook for local component state
-- **File**: `client/src/pages/*.jsx`
-- **Demo**: Filter tasks, create task
-- **Key Answer**: Never mutate directly, use functional updates
-
-## 13. PostgreSQL PK/FK
-- **Definition**: Relational design with primary and foreign keys
-- **File**: `database/schema.sql`, `server/src/repositories/*.js`
-- **Demo**: Tasks page shows project_name, created_by_name (from JOINs)
-- **Key Answer**: PK uniquely identifies, FK creates relationships, JOINs combine tables
+Use this cheat sheet for instant, high-impact one-liner answers during examiner evaluation.
 
 ---
 
-## Quick Command Reference
-
-```bash
-# Install dependencies
-npm install
-
-# Start backend (requires PostgreSQL)
-npm run dev:server
-
-# Start frontend
-npm run dev:client
-
-# Database setup
-psql -c "CREATE DATABASE hexa;"
-psql -d hexa -f database/schema.sql
-psql -d hexa -f database/seed.sql
-```
+### 1. useState Management
+- **FILE**: [`client/src/components/TaskForm.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/TaskForm.jsx)
+- **CODE**: `const [formData, setFormData] = useState({...});`
+- **WHY**: Keeps form values together matching the API payload.
+- **TRADE-OFF**: Object state simplifies payload submission but requires immutable spreading (`...prev`).
+- **VIVA ONE-LINER**: *"I use one formData object because the fields belong to the same logical form payload, and I update it immutably using functional setter updates."*
 
 ---
 
-## Common Examiner Questions
+### 2. Relational PK / FK Design
+- **FILE**: [`database/schema.sql`](file:///c:/Users/hardi/Hexa/database/schema.sql)
+- **CODE**: `projects.owner_id REFERENCES users(id) ON DELETE CASCADE`
+- **WHY**: Enforces data integrity at database level; deleting a user cascade-deletes their projects.
+- **TRADE-OFF**: Referential integrity check overhead during writes and lock contention during deletes.
+- **VIVA ONE-LINER**: *"Primary keys uniquely identify entities while foreign keys enforce referential integrity at the database level, preventing orphan records."*
 
-| Question | Quick Answer |
-|----------|--------------|
-| Why 201 not 200? | 201 = new resource created |
-| Why 204 for DELETE? | 204 = success, no response body |
-| Does await block? | NO - pauses only that function |
-| What is a closure? | Function + captured variables |
-| Are let/const hoisted? | YES - but in TDZ |
-| Show me a JOIN | taskRepository.js findAll() |
-| Why not App.jsx everything? | Single responsibility, reusable, testable |
+---
+
+### 3. SQL Indexing
+- **FILE**: [`database/schema.sql`](file:///c:/Users/hardi/Hexa/database/schema.sql#L53)
+- **CODE**: `CREATE INDEX idx_tasks_project_id ON tasks(project_id);`
+- **WHY**: Speeds up `WHERE project_id = $1` queries in `taskRepository.js`.
+- **TRADE-OFF**: Replaces $O(N)$ sequential scan with $O(\log N)$ B-Tree scan, at the cost of write maintenance and RAM.
+- **VIVA ONE-LINER**: *"I indexed project_id because Hexa frequently queries tasks by project, converting full table scans into logarithmic B-Tree index scans."*
+
+---
+
+### 4. React Composition
+- **FILE**: [`client/src/components/EmptyState.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/EmptyState.jsx)
+- **CODE**: `<EmptyState message="No tasks found" icon="📝" />`
+- **WHY**: Reuses markup and styling without duplicating DOM code across pages.
+- **TRADE-OFF**: Requires prop configuration discipline.
+- **VIVA ONE-LINER**: *"Composition allows parent components like Tasks and Projects to pass custom props to EmptyState while keeping markup DRY."*
+
+---
+
+### 5. Client-Side Routing & Guard
+- **FILE**: [`client/src/components/ProtectedRoute.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/ProtectedRoute.jsx)
+- **CODE**: `<Route element={<ProtectedRoute />}> <Route path="tasks/new" element={<CreateTask />} /> </Route>`
+- **WHY**: Redirects unauthenticated users on the client to improve UX.
+- **TRADE-OFF**: Client routing improves UX navigation but backend API authorization is still strictly required.
+- **VIVA ONE-LINER**: *"Client routing guards enhance UX by preventing unauthenticated access, but real security must be enforced by backend middleware."*
+
+---
+
+### 6. Async Data Fetching
+- **FILE**: [`client/src/api/projectApi.js`](file:///c:/Users/hardi/Hexa/client/src/api/projectApi.js)
+- **CODE**: `const response = await fetch('/api/projects/1');`
+- **WHY**: Fetches data asynchronously from Express REST API without blocking the main browser thread.
+- **TRADE-OFF**: Must explicitly handle non-200 HTTP statuses like 400 and 404.
+- **VIVA ONE-LINER**: *"Hexa's API layer wraps fetch in async/await to handle HTTP responses and throw granular, status-code-aware errors."*
+
+---
+
+### 7. async/await & Promise.all
+- **FILE**: [`client/src/pages/Dashboard.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/Dashboard.jsx)
+- **CODE**: `const [projects, tasks] = await Promise.all([getProjects(), getTasks()]);`
+- **WHY**: Executes independent requests in parallel, reducing page loading latency.
+- **TRADE-OFF**: Fails fast if any single request rejects.
+- **VIVA ONE-LINER**: *"I use Promise.all on Dashboard to fetch projects and tasks concurrently, drastically reducing overall data fetch latency."*
+
+---
+
+### 8. JavaScript Closures
+- **FILE**: [`client/src/utils/createTaskFilter.js`](file:///c:/Users/hardi/Hexa/client/src/utils/createTaskFilter.js)
+- **CODE**: `return function filterTasks(tasks) { return tasks.filter(t => t.status === status); };`
+- **WHY**: Encapsulates status variable in inner function's lexical scope.
+- **TRADE-OFF**: Retains captured variables in memory while inner function reference exists.
+- **VIVA ONE-LINER**: *"createTaskFilter returns a closure that captures the status variable from its outer lexical scope to filter tasks."*
+
+---
+
+### 9. JavaScript Event Loop
+- **FILE**: [`client/src/pages/EventLoopDemo.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/EventLoopDemo.jsx)
+- **CODE**: `Promise.resolve().then(...)` (Microtask) vs `setTimeout(..., 0)` (Macrotask)
+- **WHY**: Microtasks run before macrotasks when Call Stack empties.
+- **TRADE-OFF**: Heavy synchronous operations block the event loop.
+- **VIVA ONE-LINER**: *"The Event Loop drains all Promise microtasks before executing timer macrotasks, which is why Promise then runs before setTimeout 0."*
+
+---
+
+### 10. Hoisting & TDZ
+- **FILE**: [`client/src/pages/HoistingDemo.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/HoistingDemo.jsx)
+- **CODE**: `let` / `const` inside Temporal Dead Zone
+- **WHY**: Demonstrates variable initialization behavior.
+- **TRADE-OFF**: Accessing let/const in TDZ throws ReferenceError.
+- **VIVA ONE-LINER**: *"let and const are hoisted into their block scope but sit in the Temporal Dead Zone until initialized, throwing a ReferenceError if accessed early."*
+
+---
+
+### 11. Promises vs Callbacks
+- **FILE**: [`client/src/pages/PromisesDemo.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/PromisesDemo.jsx)
+- **CODE**: `Promise.then().catch()` vs nested callbacks
+- **WHY**: Avoids Callback Hell and centralizes error handling.
+- **TRADE-OFF**: Minor promise object allocation cost over raw callbacks.
+- **VIVA ONE-LINER**: *"Promises provide a clean, chainable asynchronous abstraction with centralized catch error handling, overcoming Callback Hell."*
+
+---
+
+### 12. Environment Variables & Secrets
+- **FILE**: [`server/src/config/env.js`](file:///c:/Users/hardi/Hexa/server/src/config/env.js)
+- **CODE**: `process.env.DATABASE_URL`
+- **WHY**: Keeps secrets out of source code while `.gitignore` blocks `.env`.
+- **TRADE-OFF**: Requires server startup validation.
+- **VIVA ONE-LINER**: *"Secrets are externalized into .env and validated on startup, ensuring sensitive database credentials are never committed to version control."*
+
+---
+
+### 13. Semantic HTTP Status Codes
+- **FILE**: [`server/src/controllers/authController.js`](file:///c:/Users/hardi/Hexa/server/src/controllers/authController.js)
+- **CODE**: `res.status(201).json(...)`
+- **WHY**: Communicates exact REST execution outcome to API clients.
+- **TRADE-OFF**: Requires explicit status assignment in controller catch/success blocks.
+- **VIVA ONE-LINER**: *"Hexa uses semantic HTTP status codes like 201 for registration, 204 for deletion, and 409 for duplicate email collisions."*
+
+---
+
+### 14. Git Workflow
+- **FILE**: [`.github/pull_request_template.md`](file:///c:/Users/hardi/Hexa/.github/pull_request_template.md)
+- **CODE**: Feature branch `feature/viva-hardening` → PR → `main`
+- **WHY**: Isolates feature development and enforces peer code reviews.
+- **TRADE-OFF**: Branch management and conflict resolution overhead.
+- **VIVA ONE-LINER**: *"We use feature branches and PR templates to isolate changes, perform local testing, and maintain a clean git history on main."*
