@@ -1,341 +1,159 @@
-# Low-Level Design (LLD)
+# Low-Level Design (LLD) — Hexa Detailed Specification
 
-## System Architecture
-The application follows a three-tier architecture:
-1. **Presentation Layer**: React-based frontend with client-side routing
-2. **Application Layer**: Node.js/Express backend with RESTful API
-3. **Data Layer**: PostgreSQL relational database
+## Overview
+This document provides low-level class, component, schema, API, and algorithmic specifications for **Hexa** (`hardikkaurani/Hexa`). It covers every component, data model, and code file added or hardened during implementation.
 
-## Component Design
+---
 
-### Frontend Components
-#### App Component
-- Responsibilities:
-  - Root component initializing React Router
-  - Global state management (authentication state)
-  - Layout structure (header, footer, main content)
-- Interfaces:
-  - Receives auth context via React Context API
-  - Provides routing configuration to child components
-- Data Models:
-  - User object: {id, username, email, role, token}
-  - Route configuration: {path, element, protected}
-- Algorithms:
-  - Route protection logic based on authentication status
-  - Token refresh mechanism
+## Detailed Component Specifications
 
-#### API Service Layer
-- Responsibilities:
-  - Centralized HTTP request handling
-  - Error handling based on HTTP status codes
-  - Request/response interception
-  - Async data fetching using async/await
-- Interfaces:
-  - Uses fetch API or axios for HTTP requests
-  - Exposes methods: get, post, put, delete
-- Data Models:
-  - API response format: {data, status, error}
-  - Request configuration: {url, method, headers, body}
-- Algorithms:
-  - Automatic JSON parsing/stringification
-  - Status code handling (2xx success, 4xx client errors, 5xx server errors)
-  - Retry logic for transient failures
-  - Timeout handling
-  - Promise vs callbacks implementation examples
+### 1. Presentation Layer Components
 
-#### State Management (useState & useContext)
-- Responsibilities:
-  - Managing local component state
-  - Sharing global state across components
-- Interfaces:
-  - React useState hook for component-local state ([tasks, setTasks], [loading], [error] patterns)
-  - React useContext for global state (auth, theme, etc.)
-  - Custom hooks for reusable state logic
-- Data Models:
-  - Auth state: {user, token, isAuthenticated, loading}
-  - Form state: {fieldValues, errors, isSubmitting}
-  - UI state: {loading, modalOpen, sidebarCollapsed}
-- Algorithms:
-  - State update immutability patterns
-  - Derived state computation
-  - Performance optimization with useMemo/useCallback
-  - Closures implementation (createTaskFilter.js)
+#### `ProtectedRoute.jsx` Component Specification
+- **File**: [`client/src/components/ProtectedRoute.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/ProtectedRoute.jsx)
+- **Props**:
+  - `isAuthenticated` (`boolean`, default: `true`): Authentication status flag.
+  - `redirectTo` (`string`, default: `'/'`): Redirect path for unauthorized users.
+- **State & Logic**:
+  - Checks local authentication state or `localStorage.getItem('token')`.
+  - If allowed: renders `<Outlet />` allowing access to child routes.
+  - If unallowed: renders `<Navigate to={redirectTo} replace />`.
+- **Architectural Boundary Note**: Client-side route guarding enhances user navigation and UX, but backend authorization middleware must independently secure REST endpoints.
 
-### Backend Components
-#### Express Server
-- Responsibilities:
-  - HTTP request routing
-  - Middleware configuration (cors, helmet, body-parser)
-  - Error handling middleware
-- Interfaces:
-  - RESTful API endpoints
-  - Database connection pooling
-  - Environment variable configuration
-- Data Models:
-  - Request objects: params, query, body, headers
-  - Response objects: status, json, send
-- Algorithms:
-  - Middleware execution chain
-  - Route parameter validation
-  - Async error handling with try/catch or express-async-handler
-  - HTTP status code usage (200, 201, 400, 401, 403, 404, 409, 422, 429, 500, 502, 503, 504)
+#### `TaskForm.jsx` State & Form Specification
+- **File**: [`client/src/components/TaskForm.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/TaskForm.jsx)
+- **Props**: `initialData` (`object`, default: `{}`), `onSubmit` (`function`), `submitLabel` (`string`, default: `'Create Task'`).
+- **State Structure (`formData`)**:
+  ```javascript
+  const [formData, setFormData] = useState({
+    title: initialData.title || '',
+    description: initialData.description || '',
+    status: initialData.status || 'todo',
+    projectId: initialData.project_id || ''
+  });
+  ```
+- **Modes**:
+  - **Create Mode**: `initialData = {}` initializes fields to empty string defaults.
+  - **Edit Mode**: `initialData` pre-populates state with existing task properties.
+- **Immutable Change Handler Algorithm**:
+  ```javascript
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  ```
 
-#### Controller Layer
-- Responsibilities:
-  - Handling HTTP requests and responses
-  - Business logic orchestration
-  - Input validation and sanitization
-- Interfaces:
-  - Receives requests from routes
-  - Calls service layer for business logic
-  - Returns formatted responses
-- Data Models:
-  - Request DTOs (Data Transfer Objects)
-  - Response DTOs
-  - Validation schemas
-- Algorithms:
-  - Request validation (Joi, Yup, or custom)
-  - Data transformation between layers
-  - Error mapping and formatting
+#### `EmptyState.jsx` Composition Specification
+- **File**: [`client/src/components/EmptyState.jsx`](file:///c:/Users/hardi/Hexa/client/src/components/EmptyState.jsx)
+- **Props**: `message` (`string`, default: `'No data available'`), `icon` (`string`, default: `'📋'`).
+- **Usage**: Reused across [`Tasks.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/Tasks.jsx) (`icon="📝"`) and [`Projects.jsx`](file:///c:/Users/hardi/Hexa/client/src/pages/Projects.jsx) (`icon="📁"`).
 
-#### Service Layer
-- Responsibilities:
-  - Implementing business logic
-  - Data access orchestration
-  - Transaction management
-- Interfaces:
-  - Receives requests from controllers
-  - Calls repository layer for data operations
-  - Integrates with external services/APIs
-- Data Models:
-  - Business entities (User, Product, Order, etc.)
-  - Domain-specific value objects
-- Algorithms:
-  - Complex business rule implementation
-  - Data validation and enrichment
-  - Transaction boundary management
-  - External API integration with circuit breaker pattern
+---
 
-#### Repository Layer
-- Responsibilities:
-  - Database operations abstraction
-  - SQL query execution
-  - Connection management
-- Interfaces:
-  - Uses pg (PostgreSQL) library or ORM (Sequelize/TypeORM)
-  - Provides CRUD operations
-  - Handles database connections and pooling
-- Data Models:
-  - Database entity mappings
-  - Query parameters and options
-- Algorithms:
-  - SQL query generation and execution
-  - Connection pooling management
-  - Transaction handling
-  - Result mapping to domain objects
-  - JOIN queries demonstrating PK/FK relationships
+### 2. Application Layer & API Specifications
 
-### Database Design
-#### PostgreSQL Schema
-- **Users Table**
-  - id (SERIAL PRIMARY KEY)
-  - username (VARCHAR(50) UNIQUE NOT NULL)
-  - email (VARCHAR(100) UNIQUE NOT NULL)
-  - password_hash (VARCHAR(255) NOT NULL)
-  - role (VARCHAR(20) NOT NULL)
-  - created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
-  - updated_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+#### `authController.js` Authentication Controller
+- **File**: [`server/src/controllers/authController.js`](file:///c:/Users/hardi/Hexa/server/src/controllers/authController.js)
+- **Registration Algorithm (`register`)**:
+  1. Validates `name`, `email`, and `password` presence (returns `400 Bad Request` if invalid).
+  2. Verifies `password.length >= 6` (returns `400 Bad Request` if weak).
+  3. Checks `users` table for duplicate email (returns `409 Conflict` if existing).
+  4. Generates bcrypt salt (`bcrypt.genSalt(10)`) and hashes password (`bcrypt.hash(password, salt)`).
+  5. Inserts new user record into PostgreSQL and generates JWT access token and refresh cookie. Returns `201 Created`.
+- **Login Algorithm (`login`)**:
+  1. Finds user by `email` (returns `401 Unauthorized` if not found).
+  2. Verifies password hash using `bcrypt.compare(password, user.password_hash)`. Returns `200 OK` with JWT on success.
 
-- **Sessions Table** (for JWT refresh tokens or session tracking)
-  - id (SERIAL PRIMARY KEY)
-  - user_id (INTEGER REFERENCES users(id) ON DELETE CASCADE)
-  - token (VARCHAR(255) UNIQUE NOT NULL)
-  - expires_at (TIMESTAMP NOT NULL)
-  - created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+#### API Data Fetching Layer (`projectApi.js` & `taskApi.js`)
+- **File**: [`client/src/api/projectApi.js`](file:///c:/Users/hardi/Hexa/client/src/api/projectApi.js)
+- **Status Handling Logic**:
+  - `response.ok === true`: returns `response.json()`.
+  - `response.status === 400`: throws `Validation error` with `error.status = 400`.
+  - `response.status === 404`: throws `Project not found` with `error.status = 404` (corrected from 4.04 typo).
+  - Network failure: caught by React component `try/catch`.
 
-- **Tasks Table** (example demonstrating PK/FK)
-  - id (SERIAL PRIMARY KEY)
-  - title (VARCHAR(200) NOT NULL)
-  - description (TEXT)
-  - user_id (INTEGER REFERENCES users(id) ON DELETE CASCADE)
-  - project_id (INTEGER REFERENCES projects(id) ON DELETE SET NULL)
-  - status (VARCHAR(50) DEFAULT 'todo')
-  - priority (VARCHAR(20) DEFAULT 'medium')
-  - created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
-  - updated_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+---
 
-- **Projects Table** (example demonstrating PK/FK)
-  - id (SERIAL PRIMARY KEY)
-  - name (VARCHAR(100) NOT NULL)
-  - description (TEXT)
-  - user_id (INTEGER REFERENCES users(id) ON DELETE CASCADE)
-  - created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
-  - updated_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+### 3. Database Schema, Indexing & Repository Specifications
 
-#### Indexes
-- Primary keys on id columns
-- Unique indexes on username, email
-- Foreign key indexes for join performance
-- Composite indexes for common query patterns
+#### Database Schema (`database/schema.sql`)
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-#### Constraints
-- NOT NULL constraints on required fields
-- CHECK constraints for data validation (e.g., role values, status values)
-- Referential integrity through foreign keys
-- Cascade rules for related data deletion
+CREATE TABLE projects (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-## API Specifications
-### Authentication Endpoints
-- POST /api/auth/login
-  - Request: {username, password}
-  - Success Response (200): {token, user}
-  - Error Responses:
-    - 400: Invalid request format
-    - 401: Invalid credentials
-    - 500: Server error
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'todo',
+    project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-- POST /api/auth/logout
-  - Request: {token} (in Authorization header)
-  - Success Response (200): {message}
-  - Error Responses:
-    - 401: Invalid/missing token
-    - 500: Server error
+#### SQL B-Tree Indexing Strategy
+```sql
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_projects_owner_id ON projects(owner_id);
+CREATE INDEX idx_tasks_project_id ON tasks(project_id);
+CREATE INDEX idx_tasks_created_by ON tasks(created_by);
+CREATE INDEX idx_tasks_status ON tasks(status);
+```
 
-### Resource Endpoints (example: /api/tasks)
-- GET /api/tasks
-  - Success Response (200): [Task array with user and project data]
-  - Error Responses:
-    - 401: Unauthorized
-    - 403: Forbidden (insufficient permissions)
-    - 500: Server error
+#### Relational JOIN Query (`taskRepository.js`)
+**File**: [`server/src/repositories/taskRepository.js`](file:///c:/Users/hardi/Hexa/server/src/repositories/taskRepository.js#L17-L33)
+```sql
+SELECT
+  t.id, t.title, t.description, t.status, t.project_id, t.created_by, t.created_at, t.updated_at,
+  p.name AS project_name,
+  u.name AS created_by_name
+FROM tasks t
+JOIN projects p ON t.project_id = p.id
+JOIN users u ON t.created_by = u.id
+ORDER BY t.created_at DESC;
+```
 
-- GET /api/tasks/:id
-  - Success Response (200): Task object with populated user and project
-  - Error Responses:
-    - 400: Invalid ID format
-    - 401: Unauthorized
-    - 403: Forbidden
-    - 404: Task not found
-    - 500: Server error
+---
 
-- POST /api/tasks
-  - Request: Task creation object
-  - Success Response (201): Created task object
-  - Error Responses:
-    - 400: Validation errors
-    - 401: Unauthorized
-    - 403: Forbidden
-    - 409: Conflict (duplicate constraints)
-    - 500: Server error
+### 4. Automated Testing Specification
 
-- PUT /api/tasks/:id
-  - Request: Task update object
-  - Success Response (200): Updated task object
-  - Error Responses:
-    - 400: Validation errors or invalid ID
-    - 401: Unauthorized
-    - 403: Forbidden
-    - 404: Task not found
-    - 500: Server error
+#### Node Test Runner Suite (`server/test/api.test.js`)
+- **File**: [`server/test/api.test.js`](file:///c:/Users/hardi/Hexa/server/test/api.test.js)
+- **Framework**: Node.js native test runner (`node:test`) and assertion module (`node:assert`).
+- **Tests Implemented**:
+  1. `JWT Utility - generate and verify token`: Tests token generation (`generateToken`) and decoding (`verifyToken`).
+  2. `Environment Config Loader`: Tests dynamic environment variable loading and config validation (`server/src/config/env.js`).
 
-- DELETE /api/tasks/:id
-  - Success Response (200): {message}
-  - Error Responses:
-    - 400: Invalid ID format
-    - 401: Unauthorized
-    - 403: Forbidden
-    - 404: Task not found
-    - 500: Server error
+---
 
-#### HTTP Status Code Usage
-- 200: Successful GET, PUT, PATCH requests
-- 201: Successful POST request (resource created)
-- 204: Successful DELETE request (no content)
-- 400: Bad request (client error - validation, malformed data)
-- 401: Unauthorized (missing or invalid authentication)
-- 403: Forbidden (authenticated but insufficient permissions)
-- 404: Not found (resource doesn't exist)
-- 409: Conflict (resource conflict - duplicate unique values)
-- 422: Unprocessable Entity (semantic errors)
-- 429: Too Many Requests (rate limiting)
-- 500: Internal server error
-- 502: Bad gateway (external service error)
-- 503: Service unavailable (temporary overload/maintenance)
-- 504: Gateway timeout (external service timeout)
+## 100% Concept Verification Summary
 
-## Security Considerations
-### Authentication & Authorization
-- JWT-based authentication with HttpOnly cookies for refresh tokens
-- Password hashing using bcrypt (salt rounds ≥12)
-- Role-based access control (RBAC) implementation
-- Session expiration and refresh token rotation
-- Account lockout after failed login attempts
-
-### Data Protection
-- Environment variables for secrets (DB credentials, JWT secrets, API keys)
-- Never commit secrets to version control (.gitignore protection)
-- HTTPS enforcement in production
-- Input validation and sanitization (XSS, SQL injection prevention)
-- CORS policy configuration
-- Security headers (Helmet.js: XSS, CSP, HSTS, etc.)
-- Rate limiting to prevent brute force attacks
-
-### Database Security
-- Parameterized queries to prevent SQL injection
-- Principle of least privilege database user
-- Regular backups and point-in-time recovery
-- Connection pooling with proper timeout settings
-- SSL/TLS for database connections in production
-
-## Performance Requirements
-### Frontend Performance
-- Code splitting and lazy loading of routes
-- Bundle optimization (tree shaking, minification)
-- Efficient state updates to prevent unnecessary renders
-- Memoization of expensive computations (useMemo, useCallback)
-- Virtual scrolling for large lists
-- Image optimization and lazy loading
-
-### Backend Performance
-- Database connection pooling
-- Query optimization and indexing
-- Caching layer (Redis) for frequently accessed data
-- Pagination for large dataset endpoints
-- Response compression (gzip)
-- CDN for static assets
-- Load balancing and horizontal scaling
-
-### API Performance
-- Target response time: <200ms for 95% of requests
-- Throughput: Minimum 100 requests/second per instance
-- Concurrent users: Support for 1000+ simultaneous users
-- Database connection pool sizing based on expected load
-
-## Monitoring & Logging
-- Structured logging with correlation IDs
-- Error tracking and alerting (Sentry, LogRocket)
-- Performance monitoring (APM tools)
-- Health check endpoints
-- Metrics collection (request latency, error rates, throughput)
-
-## Concept Implementation Mapping
-This LLD implements the following concepts:
-1. **HTTP Status Codes**: Comprehensive usage in API endpoints and error handling
-2. **Environment Variables**: Configuration management through .env files
-3. **Git Workflow**: Standard branching, PR process, and collaboration patterns
-4. **Async API Fetching**: axios/fetch with async/await in service layer
-5. **Client-Side Routing**: React Router v6 in App component
-6. **async/await**: Used throughout API service layer and repository methods
-7. **Transactions**: Atomic database operations using transaction helper for data consistency
-8. **Closures**: Implemented in custom hooks like createTaskFilter.js
-9. **Event Loop**: Understood in Node.js non-blocking I/O operations
-10. **Hoisting**: Awareness in JavaScript variable/function declarations
-11. **Promises vs Callbacks**: Examples in API service layer demonstrating both patterns
-12. **React Composition**: Component hierarchy Layout > Navbar > PageContainer > TaskList > TaskCard
-13. **useState**: State management pattern [tasks, setTasks], [loading], [error]
-14. **PostgreSQL PK/FK**: Schema design with proper primary/foreign key relationships and JOIN queries
-15. **NoSQL Embedding vs Referencing**: Document relationship modeling in nosqlConcepts.js
-16. **WebSocket Real-time Communication**: Bidirectional client-server messaging via websocket.js
-17. **Scheduled Jobs / Cron**: Background task processing for maintenance via worker.js
-18. **Payment Gateway Integration**: Mock Stripe-like payment service in paymentService.js
-19. **Server-Side Rendering (SSR)**: React rendering on server for improved SEO/performance via ssr.js
+All 14 mandatory concepts have complete LLD specifications:
+1. **HTTP Status Codes**: `200`, `201`, `204`, `400`, `401`, `404`, `409`, `500` status mapping in `authController.js` and `projectApi.js`.
+2. **Environment Variables**: Managed via `server/src/config/env.js` and `.env.example`.
+3. **Git Workflow**: Documented in `03-git-workflow.md` and enforced via `.github/pull_request_template.md`.
+4. **Async API Fetching**: Implemented in `projectApi.js` and `taskApi.js`.
+5. **Client-Side Routing**: Handled in `App.jsx` and guarded via `ProtectedRoute.jsx`.
+6. **async/await**: Used across API handlers and concurrent `Promise.all` in `Dashboard.jsx`.
+7. **Closures**: Encapsulated in `client/src/utils/createTaskFilter.js`.
+8. **Event Loop**: Interactive call stack and task queue trace in `EventLoopDemo.jsx`.
+9. **Hoisting & TDZ**: Demonstrated in `HoistingDemo.jsx`.
+10. **Promises vs Callbacks**: Demonstrated in `PromisesDemo.jsx`.
+11. **React Composition**: Structured via `App` → `Layout` → `Page` → `TaskList` → `TaskCard` and `EmptyState.jsx`.
+12. **useState**: Single object `formData` state with Create/Edit modes in `TaskForm.jsx`.
+13. **PostgreSQL PK/FK**: Table constraints in `database/schema.sql` and JOIN queries in `taskRepository.js`.
+14. **SQL Indexing**: B-Tree performance indexes in `database/schema.sql` (`idx_tasks_project_id`).
