@@ -27,8 +27,8 @@ class TaskRepository {
         p.name AS project_name,
         u.name AS created_by_name
       FROM tasks t
-      JOIN projects p ON t.project_id = p.id
-      JOIN users u ON t.created_by = u.id
+      INNER JOIN projects p ON t.project_id = p.id
+      INNER JOIN users u ON t.created_by = u.id
       ORDER BY t.created_at DESC
     `;
     const result = await this._executeQuery(sql, [], client);
@@ -50,8 +50,8 @@ class TaskRepository {
         p.name AS project_name,
         u.name AS created_by_name
       FROM tasks t
-      JOIN projects p ON t.project_id = p.id
-      JOIN users u ON t.created_by = u.id
+      INNER JOIN projects p ON t.project_id = p.id
+      INNER JOIN users u ON t.created_by = u.id
       WHERE t.id = $1
     `;
     const result = await this._executeQuery(sql, [id], client);
@@ -73,8 +73,8 @@ class TaskRepository {
         p.name AS project_name,
         u.name AS created_by_name
       FROM tasks t
-      JOIN projects p ON t.project_id = p.id
-      JOIN users u ON t.created_by = u.id
+      INNER JOIN projects p ON t.project_id = p.id
+      INNER JOIN users u ON t.created_by = u.id
       WHERE t.project_id = $1
       ORDER BY t.created_at DESC
     `;
