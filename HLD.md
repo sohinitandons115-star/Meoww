@@ -58,6 +58,44 @@
 - **PR Template**: Enforces Pull Request metadata via [`.github/pull_request_template.md`](file:///c:/Users/hardi/Hexa/.github/pull_request_template.md).
 - **Automated Testing Suite**: [`server/test/api.test.js`](file:///c:/Users/hardi/Hexa/server/test/api.test.js) uses Node's native test runner (`node:test`) to verify JWT token generation/validation and environment loading.
 
+### Real-Time Communication — WebSocket
+
+In addition to the REST API, Hexa contains a WebSocket communication channel for real-time server-to-client communication.
+
+```text
+React Client
+     │
+     ├──────── HTTP/REST ────────► Express API
+     │
+     └────── WebSocket Connection ──────► WebSocket Server
+                                             │
+                                             └── Real-time Events
+
+                                             The REST API remains responsible for normal request/response operations, while WebSockets are used when the server needs to communicate with connected clients in real time.
+
+Implementation: server/src/websocket.js
+
+Payment Gateway Integration
+
+Payment processing is isolated behind a dedicated backend service.
+
+React Client
+     │
+     │ HTTP request
+     ▼
+Express Backend
+     │
+     ▼
+Payment Service
+     │
+     ▼
+External Payment Gateway
+
+The frontend does not directly manage payment-provider credentials. The backend payment service acts as the integration boundary between Hexa and the external payment system.
+
+Implementation: server/src/services/paymentService.js
+
+
 ---
 
 ## 100% Concept Mapping Matrix across HLD

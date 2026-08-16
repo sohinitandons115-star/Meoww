@@ -62,3 +62,29 @@ This document outlines the product requirements for **Hexa** (`hardikkaurani/Hex
 12. **State Management (useState)** (`client/src/components/TaskForm.jsx`)
 13. **PostgreSQL PK/FK Schema** (`database/schema.sql`, `taskRepository.js`)
 14. **SQL Indexing Performance** (`database/schema.sql`, B-Tree indexes)
+
+
+### 6. Real-Time Communication
+
+Hexa supports real-time communication through WebSockets for events that benefit from immediate delivery to connected clients.
+
+**Requirement:**
+- Maintain WebSocket connections for connected clients.
+- Allow the server to send real-time events without requiring the client to repeatedly poll the REST API.
+- Keep real-time communication separate from the normal REST API responsibilities.
+
+**Implementation:**
+- WebSocket server: `server/src/websocket.js`
+
+### 7. Payment Gateway Integration
+
+Hexa includes a payment gateway integration through a dedicated backend service.
+
+**Requirement:**
+- Encapsulate payment-related operations inside a dedicated service.
+- Keep payment provider communication on the backend rather than exposing payment credentials to the frontend.
+- Handle successful and failed payment operations through the service layer.
+
+**Implementation:**
+- Payment service: `server/src/services/paymentService.js`
+- Payment credentials/configuration are supplied through environment variables rather than hardcoded in source code.

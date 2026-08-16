@@ -140,6 +140,71 @@ ORDER BY t.created_at DESC;
 
 ---
 
+## WebSocket / Real-Time Communication
+
+**Implementation:** `server/src/websocket.js`
+
+### Responsibility
+
+The WebSocket module manages real-time communication between the backend and connected clients.
+
+### Flow
+
+```text
+Client
+  ↓
+WebSocket connection
+  ↓
+WebSocket server
+  ↓
+Server-side event
+  ↓
+Message sent to connected client
+
+Design
+
+WebSocket communication is kept separate from the REST controllers. REST endpoints handle normal CRUD/request-response operations, while the WebSocket module handles persistent real-time connections.
+
+Why WebSocket?
+
+WebSockets allow the server to push updates to connected clients immediately instead of requiring repeated polling requests.
+
+Payment Gateway Integration
+
+Implementation: server/src/services/paymentService.js
+
+Responsibility
+
+The payment service encapsulates communication with the external payment gateway.
+
+Flow
+Client
+  ↓
+REST API
+  ↓
+Backend Controller
+  ↓
+Payment Service
+  ↓
+External Payment Gateway
+  ↓
+Payment Result
+  ↓
+Backend Response
+  ↓
+Client
+Design
+
+Payment-provider logic is isolated inside paymentService.js rather than being implemented directly inside controllers.
+
+Payment credentials are supplied through environment variables and are not exposed to the frontend.
+
+Benefits
+Keeps payment-provider logic isolated.
+Prevents payment credentials from reaching the client.
+Makes the integration easier to replace or modify.
+Keeps controllers focused on handling HTTP requests and responses.
+---
 ## 100% Concept Verification Summary
 
 All 14 mandatory concepts have complete LLD specifications:
